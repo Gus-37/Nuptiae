@@ -62,8 +62,6 @@ export default function ProfileScreen({ route }) {
               </Pressable>
             ))}
           </VStack>
-
-          
         </VStack>
       </SafeAreaView>
     </>
