@@ -8,56 +8,58 @@ import {
   AvatarImage,
   Pressable,
 } from '@gluestack-ui/themed';
-import { ChevronLeft, User, Key, RotateCcw, Languages, Monitor } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { ChevronLeft, User, Key, Languages, Monitor } from 'lucide-react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function ProfileScreen({ route }) {
+export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { name, role, avatar, bgColor } = route.params;
+  const route = useRoute();
+  const { name = 'Usuario', role = 'Rol', avatar, bgColor = '#ccc' } = route.params || {};
   const [userAvatar, setUserAvatar] = useState(avatar);
+  const [activeMenu, setActiveMenu] = useState('perfil');
 
   const menuItems = [
     {
       id: 'perfil',
       label: 'Perfil',
-      icon: <User size={24} color="#FF7700" />, // naranja
-      active: true,
-      onPress: () =>
+      icon: <User size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('perfil');
         navigation.navigate('ProfileDetail', {
           name,
           role,
           avatar: userAvatar,
           username: 'usuario123',
           bgColor,
-        }),
-    },
-    {
-      id: 'actividad',
-      label: 'Actividad',
-      icon: <RotateCcw size={24} color="#555" />, // gris
-      active: false,
-      onPress: () => console.log('Actividad pressed'),
+        });
+      },
     },
     {
       id: 'notificaciones',
       label: 'Notificaciones',
       icon: <Key size={24} color="#555" />,
-      active: false,
-      onPress: () => console.log('Notificaciones pressed'),
+      onPress: () => {
+        setActiveMenu('notificaciones');
+        navigation.navigate('Notifications'); 
+      },
     },
     {
       id: 'idioma',
       label: 'Idioma',
       icon: <Languages size={24} color="#555" />,
-      active: false,
-      onPress: () => console.log('Idioma pressed'),
+      onPress: () => {
+        setActiveMenu('idioma');
+        navigation.navigate('Language');
+      },
     },
     {
       id: 'pantalla',
       label: 'Pantalla',
       icon: <Monitor size={24} color="#555" />,
-      active: false,
-      onPress: () => console.log('Pantalla pressed'),
+      onPress: () => {
+        setActiveMenu('pantalla');
+        navigation.navigate('DisplayScreen');
+      },
     },
   ];
 
@@ -92,13 +94,13 @@ export default function ProfileScreen({ route }) {
                   px={16}
                   py={16}
                   borderRadius={999}
-                  style={{ backgroundColor: item.active ? '#FFE6CC' : 'transparent' }}
+                  style={{ backgroundColor: activeMenu === item.id ? '#FFE6CC' : 'transparent' }}
                 >
                   {item.icon}
                   <Text
                     fontSize={16}
-                    fontWeight={item.active ? '500' : '400'}
-                    style={{ color: item.active ? '#e57373' : '#555' }}
+                    fontWeight={activeMenu === item.id ? '500' : '400'}
+                    style={{ color: activeMenu === item.id ? '#e57373' : '#555' }}
                   >
                     {item.label}
                   </Text>
