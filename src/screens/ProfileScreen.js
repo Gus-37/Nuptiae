@@ -58,7 +58,7 @@ export default function ProfileScreen() {
       icon: <Monitor size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('pantalla');
-        console.log('Pantalla pressed');
+        navigation.navigate('DisplayScreen');
       },
     },
   ];
