@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navigation/drawer";
-import { Users, Gift, Users as ProvidersIcon, Building, HelpCircle } from "lucide-react-native";
+import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
+import { Users, Gift, Building, HelpCircle } from "lucide-react-native";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import FormsScreen from "../screens/FormsScreen";
@@ -61,7 +61,7 @@ function CustomDrawerContent(props) {
         label="Proveedores"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <ProvidersIcon size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <Building size={22} color={focused ? "#ff6b6b" : "#666"} />
           </View>
         )}
         onPress={() => props.navigation.navigate("Providers")}
@@ -90,7 +90,7 @@ function CustomDrawerContent(props) {
             <HelpCircle size={22} color={focused ? "#ff6b6b" : "#666"} />
           </View>
         )}
-        onPress={() => {}}
+        onPress={() => { }}
         labelStyle={styles.drawerLabel}
         style={styles.drawerItem}
         activeTintColor="#ff6b6b"

@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
     marginBottom: 4,
   },
   taskPriority: {

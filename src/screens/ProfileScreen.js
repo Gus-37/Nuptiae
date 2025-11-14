@@ -1,67 +1,115 @@
-import React from "react";
+import React, { useState } from 'react';
+import { SafeAreaView, StatusBar } from 'react-native';
 import {
-  View,
+  VStack,
+  HStack,
   Text,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft } from "lucide-react-native";
+  Avatar,
+  AvatarImage,
+  Pressable,
+} from '@gluestack-ui/themed';
+import { ChevronLeft, User, Key, Languages, Monitor } from 'lucide-react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { name = 'Usuario', role = 'Rol', avatar, bgColor = '#ccc' } = route.params || {};
+  const [userAvatar, setUserAvatar] = useState(avatar);
+  const [activeMenu, setActiveMenu] = useState('perfil');
+
+  const menuItems = [
+    {
+      id: 'perfil',
+      label: 'Perfil',
+      icon: <User size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('perfil');
+        navigation.navigate('ProfileDetail', {
+          name,
+          role,
+          avatar: userAvatar,
+          username: 'usuario123',
+          bgColor,
+        });
+      },
+    },
+    {
+      id: 'notificaciones',
+      label: 'Notificaciones',
+      icon: <Key size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('notificaciones');
+        navigation.navigate('Notifications'); 
+      },
+    },
+    {
+      id: 'idioma',
+      label: 'Idioma',
+      icon: <Languages size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('idioma');
+        navigation.navigate('Language');
+      },
+    },
+    {
+      id: 'pantalla',
+      label: 'Pantalla',
+      icon: <Monitor size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('pantalla');
+        navigation.navigate('DisplayScreen');
+      },
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Perfil</Text>
-          <View style={{ width: 24 }} />
-        </View>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <VStack flex={1}>
+          {/* Header */}
+          <HStack px={16} py={16} alignItems="center">
+            <Pressable onPress={() => navigation.goBack()}>
+              <ChevronLeft size={24} color="#999" />
+            </Pressable>
+          </HStack>
 
-        <View style={styles.content}>
-          <Text style={styles.text}>Perfil del Usuario</Text>
-        </View>
-      </View>
-    </SafeAreaView>
+          {/* Avatar y nombre */}
+          <VStack alignItems="center" mb={32}>
+            <Avatar size="2xl" mb={16} bg={bgColor}>
+              <AvatarImage source={{ uri: userAvatar }} alt={name} />
+            </Avatar>
+            <Text fontSize={24} fontWeight="600" color="#111">{name}</Text>
+            <Text fontSize={16} color="#666" mt={4}>{role}</Text>
+          </VStack>
+
+          {/* Menu Items */}
+          <VStack flex={1} px={16} space={8}>
+            {menuItems.map((item) => (
+              <Pressable key={item.id} onPress={item.onPress}>
+                <HStack
+                  alignItems="center"
+                  space={16}
+                  px={16}
+                  py={16}
+                  borderRadius={999}
+                  style={{ backgroundColor: activeMenu === item.id ? '#FFE6CC' : 'transparent' }}
+                >
+                  {item.icon}
+                  <Text
+                    fontSize={16}
+                    fontWeight={activeMenu === item.id ? '500' : '400'}
+                    style={{ color: activeMenu === item.id ? '#e57373' : '#555' }}
+                  >
+                    {item.label}
+                  </Text>
+                </HStack>
+              </Pressable>
+            ))}
+          </VStack>
+        </VStack>
+      </SafeAreaView>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#ff6b6b",
-  },
-});

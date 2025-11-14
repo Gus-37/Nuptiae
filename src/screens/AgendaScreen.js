@@ -308,6 +308,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+
   section: {
     padding: 20,
   },
