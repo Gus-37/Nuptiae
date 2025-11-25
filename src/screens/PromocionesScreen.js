@@ -49,7 +49,13 @@ export default function PromocionesScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Promociones</Text>

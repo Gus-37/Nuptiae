@@ -104,6 +104,7 @@ export default function DrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         drawerActiveTintColor: "#ff6b6b",
@@ -112,72 +113,116 @@ export default function DrawerNavigator() {
           backgroundColor: "#fff",
           width: 280,
         },
+        swipeEnabled: true,
+        swipeEdgeWidth: 50,
       }}
     >
+      {/* Main Screens - Accessible from Drawer */}
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: "Inicio" }}
+        options={{ 
+          title: "Inicio",
+          drawerLabel: "Inicio"
+        }}
       />
       <Drawer.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: "Perfil" }}
-      />
-      <Drawer.Screen
-        name="Providers"
-        component={ProvidersScreen}
-        options={{ title: "Proveedores" }}
-      />
-      <Drawer.Screen
-        name="Forms"
-        component={FormsScreen}
-        options={{ title: "Formularios" }}
-      />
-      <Drawer.Screen
-        name="Promociones"
-        component={PromocionesScreen}
-        options={{ title: "Promociones" }}
+        options={{ 
+          title: "Perfil",
+          drawerLabel: "Perfil"
+        }}
       />
       <Drawer.Screen
         name="Invitados"
         component={InvitadosScreen}
-        options={{ title: "Invitados" }}
+        options={{ 
+          title: "Invitados",
+          drawerLabel: "Invitados"
+        }}
       />
+      <Drawer.Screen
+        name="Promociones"
+        component={PromocionesScreen}
+        options={{ 
+          title: "Promociones",
+          drawerLabel: "Promos"
+        }}
+      />
+      <Drawer.Screen
+        name="Providers"
+        component={ProvidersScreen}
+        options={{ 
+          title: "Proveedores",
+          drawerLabel: "Proveedores"
+        }}
+      />
+      <Drawer.Screen
+        name="Forms"
+        component={FormsScreen}
+        options={{ 
+          title: "Comunidad",
+          drawerLabel: "Comunidad"
+        }}
+      />
+      
+      {/* Secondary Screens - Not in drawer menu but accessible */}
       <Drawer.Screen
         name="Agenda"
         component={AgendaScreen}
-        options={{ title: "Agenda" }}
+        options={{ 
+          title: "Agenda",
+          drawerItemStyle: { display: 'none' }
+        }}
       />
       <Drawer.Screen
         name="Costos"
         component={CostosScreen}
-        options={{ title: "Costos" }}
+        options={{ 
+          title: "Costos",
+          drawerItemStyle: { display: 'none' }
+        }}
       />
       <Drawer.Screen
         name="Cuentas"
         component={CuentasScreen}
-        options={{ title: "Cuentas" }}
-      />
-      <Drawer.Screen
-        name="Pantalla"
-        component={PantallaScreen}
-        options={{ title: "Pantalla" }}
-      />
-      <Drawer.Screen
-        name="Idioma"
-        component={IdiomaScreen}
-        options={{ title: "Idioma" }}
-      />
-      <Drawer.Screen
-        name="Roles"
-        component={RolesScreen}
-        options={{ title: "Roles" }}
+        options={{ 
+          title: "Cuentas",
+          drawerItemStyle: { display: 'none' }
+        }}
       />
       <Drawer.Screen
         name="Tareas"
         component={TareasScreen}
-        options={{ title: "Tareas" }}
+        options={{ 
+          title: "Tareas",
+          drawerItemStyle: { display: 'none' }
+        }}
+      />
+      <Drawer.Screen
+        name="Roles"
+        component={RolesScreen}
+        options={{ 
+          title: "Roles",
+          drawerItemStyle: { display: 'none' }
+        }}
+      />
+      <Drawer.Screen
+        name="Pantalla"
+        component={PantallaScreen}
+        options={{ 
+          title: "Pantalla",
+          drawerItemStyle: { display: 'none' }
+        }}
+      />
+      <Drawer.Screen
+        name="Idioma"
+        component={IdiomaScreen}
+        options={{ 
+          title: "Idioma",
+          drawerItemStyle: { display: 'none' }
+        }}
       />
     </Drawer.Navigator>
   );

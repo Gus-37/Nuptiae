@@ -109,10 +109,12 @@ export default function CuentasScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={24} color="#333" />
-          </TouchableOpacity>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => {
+              setSelectedAccount(null);
+            }}>
+              <ArrowLeft size={24} color="#333" />
+            </TouchableOpacity>
           <Text style={styles.headerTitle}>Configuración de cuentas</Text>
           <View style={{ width: 24 }} />
         </View>

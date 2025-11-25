@@ -33,7 +33,13 @@ export default function RolesScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Roles</Text>
@@ -68,7 +74,14 @@ export default function RolesScreen({ navigation }) {
         </ScrollView>
 
         {/* Add Button */}
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => navigation.getParent()?.navigate('AddInvitado', {
+            onSave: (newRole) => {
+              console.log('Nuevo rol:', newRole);
+            }
+          })}
+        >
           <Plus size={24} color="#fff" />
         </TouchableOpacity>
 

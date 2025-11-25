@@ -27,7 +27,13 @@ export default function InvitadosScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Invitados</Text>
@@ -75,7 +81,11 @@ export default function InvitadosScreen({ navigation }) {
         {/* Add Button */}
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => navigation.navigate("Roles")}
+          onPress={() => navigation.getParent()?.navigate('AddInvitado', {
+            onSave: (newGuest) => {
+              console.log('Nuevo invitado:', newGuest);
+            }
+          })}
         >
           <Plus size={24} color="#fff" />
         </TouchableOpacity>

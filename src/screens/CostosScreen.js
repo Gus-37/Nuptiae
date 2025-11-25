@@ -37,8 +37,14 @@ export default function CostosScreen({ navigation, route }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={24} color="#333" />
+          <TouchableOpacity onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}>
+            <Menu size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Costos y presupuesto</Text>
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
@@ -129,7 +135,7 @@ export default function CostosScreen({ navigation, route }) {
             <Text style={styles.sectionTitle}>
               {selectedTab === "compras" ? "Compras" : selectedTab === "carrito" ? "Carrito" : "Presupuesto"}
             </Text>
-            
+
             {items.map((item) => (
               <View key={item.id} style={styles.itemCard}>
                 <View style={styles.itemImage} />
@@ -153,7 +159,7 @@ export default function CostosScreen({ navigation, route }) {
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
             <Home size={24} color="#666" />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.navItem}
             onPress={() => navigation.navigate("Costos", { tab: "compras" })}
           >

@@ -8,8 +8,8 @@ import {
   AvatarImage,
   Pressable,
 } from '@gluestack-ui/themed';
-import { ChevronLeft, User, Key, Languages, Monitor } from 'lucide-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { ChevronLeft, User, Bell, Languages, Monitor } from 'lucide-react-native';
+import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -25,7 +25,8 @@ export default function ProfileScreen() {
       icon: <User size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('perfil');
-        navigation.navigate('ProfileDetail', {
+        // Navigate to ProfileDetail in the root stack
+        navigation.getParent()?.navigate('ProfileDetail', {
           name,
           role,
           avatar: userAvatar,
@@ -37,10 +38,11 @@ export default function ProfileScreen() {
     {
       id: 'notificaciones',
       label: 'Notificaciones',
-      icon: <Key size={24} color="#555" />,
+      icon: <Bell size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('notificaciones');
-        navigation.navigate('Notifications'); 
+        // Navigate to Notifications in the root stack
+        navigation.getParent()?.navigate('Notifications');
       },
     },
     {
@@ -49,7 +51,8 @@ export default function ProfileScreen() {
       icon: <Languages size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('idioma');
-        navigation.navigate('Language');
+        // Navigate to Language in the root stack
+        navigation.getParent()?.navigate('Language');
       },
     },
     {
@@ -58,7 +61,8 @@ export default function ProfileScreen() {
       icon: <Monitor size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('pantalla');
-        navigation.navigate('DisplayScreen');
+        // Navigate to DisplayScreen in the root stack
+        navigation.getParent()?.navigate('DisplayScreen');
       },
     },
   ];

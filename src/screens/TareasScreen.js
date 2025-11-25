@@ -31,7 +31,13 @@ export default function TareasScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}>
             <Menu size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Agenda</Text>
@@ -80,7 +86,14 @@ export default function TareasScreen({ navigation }) {
         </ScrollView>
 
         {/* Add Button */}
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => navigation.getParent()?.navigate('AddTarea', {
+            onAddTarea: (newTarea) => {
+              console.log('Nueva tarea:', newTarea);
+            }
+          })}
+        >
           <Plus size={24} color="#fff" />
         </TouchableOpacity>
 
