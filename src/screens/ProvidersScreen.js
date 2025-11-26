@@ -127,7 +127,7 @@ export default function ProvidersScreen({ navigation }) {
                         <View style={styles.verticalGrid}>
                             {popularProviders.map((provider) => (
                                 <TouchableOpacity key={provider.id} style={styles.verticalCard}>
-                                    <Image source={{ uri: provider.image }} style={styles.verticalImage} />
+                                    <Image source={{ uri: provider.image }} style={styles.verticalImage} alt={provider.name} />
                                     <Text style={styles.cardTitle}>{provider.name}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -140,7 +140,7 @@ export default function ProvidersScreen({ navigation }) {
                         <View style={styles.verticalGrid}>
                             {accessories.map((item) => (
                                 <TouchableOpacity key={item.id} style={styles.verticalCard}>
-                                    <Image source={{ uri: item.image }} style={styles.verticalImage} />
+                                    <Image source={{ uri: item.image }} style={styles.verticalImage} alt={item.name} />
                                     <Text style={styles.cardTitle}>{item.name}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -189,7 +189,7 @@ export default function ProvidersScreen({ navigation }) {
                         >
                             {popularProviders.map((provider) => (
                                 <TouchableOpacity key={provider.id} style={styles.horizontalCard}>
-                                    <Image source={{ uri: provider.image }} style={styles.horizontalImage} />
+                                    <Image source={{ uri: provider.image }} style={styles.horizontalImage} alt={provider.name} />
                                     <Text style={styles.cardTitle}>{provider.name}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -206,7 +206,7 @@ export default function ProvidersScreen({ navigation }) {
                         >
                             {accessories.map((item) => (
                                 <TouchableOpacity key={item.id} style={styles.horizontalCard}>
-                                    <Image source={{ uri: item.image }} style={styles.horizontalImage} />
+                                    <Image source={{ uri: item.image }} style={styles.horizontalImage} alt={item.name} />
                                     <Text style={styles.cardTitle}>{item.name}</Text>
                                 </TouchableOpacity>
                             ))}

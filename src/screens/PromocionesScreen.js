@@ -68,7 +68,7 @@ export default function PromocionesScreen({ navigation }) {
             <View style={styles.grid}>
               {promos.map((promo) => (
                 <TouchableOpacity key={promo.id} style={styles.promoCard}>
-                  <Image source={{ uri: promo.image }} style={styles.promoImage} />
+                  <Image source={{ uri: promo.image }} style={styles.promoImage} alt={promo.name} />
                   <View style={styles.promoInfo}>
                     <Text style={styles.promoName}>{promo.name}</Text>
                     <Text style={styles.promoPrice}>{promo.price}</Text>

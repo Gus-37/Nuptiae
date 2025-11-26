@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Sun, Moon } from "lucide-react-native";
+import { CommonActions } from '@react-navigation/native';
 
-export default function PantallaScreen({ navigation }) {
+export default function PantallaScreen({ navigation, route }) {
   const [darkMode, setDarkMode] = useState(false);
+  const params = route.params || {};
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -20,7 +22,9 @@ export default function PantallaScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            navigation.getParent()?.navigate('ProfileDetail', params);
+          }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Pantalla</Text>

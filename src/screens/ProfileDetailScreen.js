@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  SafeAreaView, 
   StatusBar, 
   Alert, 
   Pressable, 
@@ -11,6 +10,7 @@ import {
   ScrollView, 
   ImageBackground 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar, AvatarImage } from '@gluestack-ui/themed';
 import { ChevronLeft, Camera, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -50,7 +50,7 @@ export default function ProfileDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#FF7700" />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
 
@@ -59,6 +59,7 @@ export default function ProfileDetailScreen() {
           source={{uri: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?fit=crop&w=600&q=60'}} 
           style={styles.headerBackground}
           imageStyle={{ borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}
+          alt="Fondo de perfil"
         >
           <Pressable onPress={() => navigation.goBack()} style={{ padding: 12 }}>
             <ChevronLeft size={28} color="#fff" />

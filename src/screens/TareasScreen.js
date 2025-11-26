@@ -38,9 +38,9 @@ export default function TareasScreen({ navigation }) {
               navigation.navigate('Home');
             }
           }}>
-            <Menu size={24} color="#333" />
+            <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Agenda</Text>
+          <Text style={styles.headerTitle}>Tareas</Text>
           <View style={{ width: 24 }} />
         </View>
 

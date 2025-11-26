@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { StatusBar, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { VStack, HStack, Text, Pressable } from '@gluestack-ui/themed';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -40,10 +41,9 @@ export default function DisplayScreen() {
   ];
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
           <VStack space={24}>
 
             {/* Header */}
@@ -188,6 +188,5 @@ export default function DisplayScreen() {
           </VStack>
         </ScrollView>
       </SafeAreaView>
-    </>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   VStack,
   HStack,
@@ -26,10 +27,11 @@ export default function ProfileScreen() {
       onPress: () => {
         setActiveMenu('perfil');
         // Navigate to ProfileDetail in the root stack
+        const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
         navigation.getParent()?.navigate('ProfileDetail', {
           name,
           role,
-          avatar: userAvatar,
+          avatar: avatarUri,
           username: 'usuario123',
           bgColor,
         });
@@ -51,8 +53,15 @@ export default function ProfileScreen() {
       icon: <Languages size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('idioma');
-        // Navigate to Language in the root stack
-        navigation.getParent()?.navigate('Language');
+        // Navigate to Idioma in the drawer
+        const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
+        navigation.navigate('Idioma', {
+          name,
+          role,
+          avatar: avatarUri,
+          username: 'usuario123',
+          bgColor,
+        });
       },
     },
     {
@@ -61,17 +70,23 @@ export default function ProfileScreen() {
       icon: <Monitor size={24} color="#555" />,
       onPress: () => {
         setActiveMenu('pantalla');
-        // Navigate to DisplayScreen in the root stack
-        navigation.getParent()?.navigate('DisplayScreen');
+        // Navigate to Pantalla in the drawer
+        const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
+        navigation.navigate('Pantalla', {
+          name,
+          role,
+          avatar: avatarUri,
+          username: 'usuario123',
+          bgColor,
+        });
       },
     },
   ];
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-        <VStack flex={1}>
+      <VStack flex={1}>
           {/* Header */}
           <HStack px={16} py={16} alignItems="center">
             <Pressable onPress={() => navigation.goBack()}>
@@ -82,7 +97,7 @@ export default function ProfileScreen() {
           {/* Avatar y nombre */}
           <VStack alignItems="center" mb={32}>
             <Avatar size="2xl" mb={16} bg={bgColor}>
-              <AvatarImage source={{ uri: userAvatar }} alt={name} />
+              {userAvatar && <AvatarImage source={{ uri: userAvatar }} alt={name} />}
             </Avatar>
             <Text fontSize={24} fontWeight="600" color="#111">{name}</Text>
             <Text fontSize={16} color="#666" mt={4}>{role}</Text>
@@ -114,6 +129,5 @@ export default function ProfileScreen() {
           </VStack>
         </VStack>
       </SafeAreaView>
-    </>
   );
 }

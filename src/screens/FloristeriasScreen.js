@@ -63,7 +63,7 @@ export default function FloristeriasScreen({ navigation }) {
                     <View style={styles.grid}>
                         {flores.map((item) => (
                             <TouchableOpacity key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image }} style={styles.image} />
+                                <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
                                 <View style={styles.cardContent}>
                                     <Text style={styles.itemName}>{item.name}</Text>
                                     <Text style={styles.itemPrice}>{item.price}</Text>

@@ -9,9 +9,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Check } from "lucide-react-native";
+import { CommonActions } from '@react-navigation/native';
 
-export default function IdiomaScreen({ navigation }) {
+export default function IdiomaScreen({ navigation, route }) {
   const [selectedLanguage, setSelectedLanguage] = useState("Español");
+  const params = route.params || {};
 
   const languages = [
     { id: 1, name: "Español" },
@@ -24,7 +26,9 @@ export default function IdiomaScreen({ navigation }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => {
+            navigation.getParent()?.navigate('ProfileDetail', params);
+          }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Idioma</Text>
