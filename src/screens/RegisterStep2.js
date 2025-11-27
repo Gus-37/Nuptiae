@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Alert } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function RegisterStep2() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const step1Data = route.params?.step1Data || {};
+  
   const [weddingDate, setWeddingDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [role, setRole] = useState("");
-  const [accountCode, setAccountCode] = useState("");
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || weddingDate;
@@ -21,6 +23,22 @@ export default function RegisterStep2() {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const handleNext = () => {
+    if (!role) {
+      Alert.alert("Campo requerido", "Por favor selecciona tu rol en la boda");
+      return;
+    }
+
+    navigation.navigate("RegisterPush", {
+      step1Data,
+      step2Data: {
+        weddingDate: weddingDate.toISOString(),
+        role
+      },
+      hasCode: false
+    });
   };
 
   return (
@@ -45,27 +63,25 @@ export default function RegisterStep2() {
         />
       )}
 
-      <Text style={styles.label}>Rol</Text>
-      <TextInput
-        placeholder="Selecciona tu rol en la boda"
-        value={role}
-        onChangeText={setRole}
-        style={styles.input}
-        placeholderTextColor="#999"
-      />
-
-      <Text style={styles.label}>Código de cuenta duo (opcional)</Text>
-      <TextInput
-        placeholder="Ingresa el código de la cuenta duo"
-        value={accountCode}
-        onChangeText={setAccountCode}
-        style={styles.input}
-        placeholderTextColor="#999"
-      />
+      <Text style={styles.label}>Rol en la boda</Text>
+      <View style={styles.roleContainer}>
+        <TouchableOpacity
+          style={[styles.roleButton, role === 'Novia' && styles.roleButtonActive]}
+          onPress={() => setRole('Novia')}
+        >
+          <Text style={[styles.roleText, role === 'Novia' && styles.roleTextActive]}>👰 Novia</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.roleButton, role === 'Novio' && styles.roleButtonActive]}
+          onPress={() => setRole('Novio')}
+        >
+          <Text style={[styles.roleText, role === 'Novio' && styles.roleTextActive]}>🤵 Novio</Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         style={styles.primaryButton}
-        onPress={() => navigation.navigate("RegisterPush")}
+        onPress={handleNext}
       >
         <Text style={styles.primaryButtonText}>Siguiente</Text>
       </TouchableOpacity>
@@ -79,6 +95,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 24,
     paddingTop: 40,
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  roleButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    backgroundColor: '#fafafa',
+    alignItems: 'center',
+  },
+  roleButtonActive: {
+    backgroundColor: '#ff6b6b',
+    borderColor: '#ff6b6b',
+  },
+  roleText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  roleTextActive: {
+    color: '#fff',
+    fontWeight: '600',
   },
   title: {
     fontSize: 24,

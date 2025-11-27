@@ -23,7 +23,7 @@ export default function PantallaScreen({ navigation, route }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => {
-            navigation.getParent()?.navigate('ProfileDetail', params);
+            navigation.goBack();
           }}>
             <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>

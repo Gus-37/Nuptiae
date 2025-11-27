@@ -1,12 +1,41 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Mail, Apple } from "lucide-react-native";
+import { loginUser } from "../services/authService";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor completa todos los campos");
+      return;
+    }
+
+    setLoading(true);
+    const result = await loginUser(email, password);
+    setLoading(false);
+
+    if (result.success) {
+      // Login exitoso
+      navigation.replace("HomeDrawer");
+    } else {
+      Alert.alert("Error de inicio de sesión", result.error);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    if (!email) {
+      Alert.alert("Email requerido", "Ingresa tu email para recuperar la contraseña");
+      return;
+    }
+    // Aquí puedes agregar la funcionalidad de resetPassword
+    Alert.alert("Recuperación", "Se enviará un correo de recuperación");
+  };
 
   return (
     <View style={styles.container}>
@@ -14,11 +43,14 @@ export default function LoginScreen() {
       <Text style={styles.subtitle}>Inicia sesión para comenzar</Text>
 
       <TextInput
-        placeholder="Usuario o Correo Electrónico"
+        placeholder="Correo Electrónico"
         value={email}
         onChangeText={setEmail}
         style={styles.input}
         placeholderTextColor="#999"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        editable={!loading}
       />
 
       <View style={styles.passwordContainer}>
@@ -29,18 +61,24 @@ export default function LoginScreen() {
           secureTextEntry
           style={[styles.input, { marginBottom: 0 }]}
           placeholderTextColor="#999"
+          editable={!loading}
         />
       </View>
 
-      <TouchableOpacity>
+      <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
         <Text style={styles.forgotPassword}>¿Olvidaste la contraseña?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => navigation.replace("HomeDrawer")}
+        style={[styles.primaryButton, loading && styles.disabledButton]}
+        onPress={handleLogin}
+        disabled={loading}
       >
-        <Text style={styles.primaryButtonText}>Inicia Sesión</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.primaryButtonText}>Inicia Sesión</Text>
+        )}
       </TouchableOpacity>
 
       <View style={styles.divider}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,17 +7,127 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  Share,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Menu, Users, ArrowLeft, ChevronRight, User, Lock, Activity, Globe, Monitor, Home, ShoppingCart, Calendar } from "lucide-react-native";
+import { Menu, Users, ArrowLeft, ChevronRight, User, Lock, Activity, Globe, Monitor, Home, ShoppingCart, Calendar, Copy, LogOut } from "lucide-react-native";
+import { getUserData, logoutUser } from '../services/authService';
+import { getSharedAccountInfo } from '../services/accountService';
+import { auth } from '../config/firebaseConfig';
 
 export default function CuentasScreen({ navigation }) {
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountCode, setAccountCode] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const accounts = [
-    { id: 1, name: "Jessica", role: "Novia", avatar: "👰" },
-    { id: 2, name: "Michael", role: "Novio", avatar: "🤵" },
-  ];
+  useEffect(() => {
+    loadAccountInfo();
+  }, []);
+
+  const loadAccountInfo = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.log('No hay usuario autenticado');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Usuario actual:', currentUser.uid);
+      const userData = await getUserData(currentUser.uid);
+      console.log('Datos de usuario:', userData);
+
+      if (userData.success && userData.data.sharedAccountCode) {
+        console.log('Código de cuenta:', userData.data.sharedAccountCode);
+        const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
+        console.log('Info de cuenta:', accountInfo);
+
+        if (accountInfo.success) {
+          setAccountCode(accountInfo.account.code);
+          
+          // Filtrar solo el usuario actual para mostrar en la lista
+          const currentUserAccount = accountInfo.account.members.find(
+            member => member.uid === currentUser.uid
+          );
+          
+          if (currentUserAccount) {
+            // Determinar avatar basado en género o rol
+            let avatar = "👤"; // Default
+            if (currentUserAccount.gender === 'Femenino' || currentUserAccount.role === 'Novia') {
+              avatar = "👰";
+            } else if (currentUserAccount.gender === 'Masculino' || currentUserAccount.role === 'Novio') {
+              avatar = "🤵";
+            }
+            
+            const formattedAccount = {
+              id: currentUserAccount.uid,
+              name: currentUserAccount.name || currentUser.displayName || currentUserAccount.email?.split('@')[0] || 'Usuario',
+              role: currentUserAccount.role === 'owner' ? 'Creador' : currentUserAccount.role || 'Miembro',
+              avatar: avatar,
+              email: currentUserAccount.email,
+              gender: currentUserAccount.gender,
+            };
+            
+            console.log('Cuenta del usuario actual:', formattedAccount);
+            setAccounts([formattedAccount]);
+          }
+        } else {
+          console.error('Error al obtener cuenta:', accountInfo.error);
+          Alert.alert('Error', accountInfo.error);
+        }
+      } else {
+        console.log('Usuario sin código de cuenta compartida');
+      }
+    } catch (error) {
+      console.error('Error al cargar información:', error);
+      Alert.alert('Error', 'No se pudo cargar la información de la cuenta: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (accountCode) {
+      try {
+        await Share.share({
+          message: `Código de cuenta Nuptiae: ${accountCode}\n\nUsa este código para unirte a nuestra cuenta compartida.`
+        });
+      } catch (error) {
+        Alert.alert('Código', accountCode);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro que deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logoutUser();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo cerrar sesión');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const menuOptions = [
     { id: 1, icon: User, label: "Editar Perfil", description: "Nombre, correo, foto de perfil", color: "#ff6b6b" },
@@ -25,6 +135,7 @@ export default function CuentasScreen({ navigation }) {
     { id: 3, icon: Activity, label: "Actividad Reciente", description: "Historial de acciones en la cuenta", color: "#333" },
     { id: 4, icon: Globe, label: "Idioma y Región", description: "Español, México", color: "#333" },
     { id: 5, icon: Monitor, label: "Configuración de Pantalla", description: "Tema, notificaciones, privacidad", color: "#333" },
+    { id: 6, icon: LogOut, label: "Cerrar Sesión", description: "Salir de tu cuenta", color: "#ff6b6b" },
   ];
 
   if (selectedAccount) {
@@ -62,11 +173,13 @@ export default function CuentasScreen({ navigation }) {
                         navigation.navigate("Idioma");
                       } else if (option.id === 5) {
                         navigation.navigate("Pantalla");
+                      } else if (option.id === 6) {
+                        handleLogout();
                       }
                     }}
                   >
                     <View style={styles.menuItemLeft}>
-                      <View style={[styles.iconCircle, option.id === 1 && styles.iconCircleHighlight]}>
+                      <View style={[styles.iconCircle, (option.id === 1 || option.id === 6) && styles.iconCircleHighlight]}>
                         <IconComponent size={20} color={option.color} />
                       </View>
                       <View style={styles.menuItemTextContainer}>
@@ -123,13 +236,30 @@ export default function CuentasScreen({ navigation }) {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView style={styles.content}>
-          <View style={styles.section}>
-            <Text style={styles.accountNumber}>456</Text>
-            <Text style={styles.accountLabel}>Código de cuenta dúo</Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#ff6b6b" />
+          </View>
+        ) : (
+          <ScrollView style={styles.content}>
+            <View style={styles.section}>
+              {/* Código de cuenta */}
+              {accountCode && (
+                <View style={styles.codeSection}>
+                  <View style={styles.codeContainer}>
+                    <Text style={styles.accountNumber}>{accountCode}</Text>
+                    <TouchableOpacity onPress={handleCopyCode} style={styles.copyButton}>
+                      <Copy size={20} color="#ff6b6b" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.accountLabel}>Código de cuenta</Text>
+                  <Text style={styles.accountHint}>Comparte este código con tu pareja</Text>
+                </View>
+              )}
 
-            <View style={styles.accountsContainer}>
-              {accounts.map((account) => (
+              {/* Lista de cuentas */}
+              <View style={styles.accountsContainer}>
+                {accounts.map((account) => (
                 <TouchableOpacity 
                   key={account.id} 
                   style={styles.accountCard}
@@ -152,6 +282,7 @@ export default function CuentasScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        )}
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
@@ -202,6 +333,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   section: {
     padding: 20,
     alignItems: "center",
@@ -212,16 +348,33 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 24,
   },
+  codeSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  codeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   accountNumber: {
     fontSize: 48,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 8,
+  },
+  copyButton: {
+    padding: 8,
   },
   accountLabel: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 40,
+    marginTop: 8,
+  },
+  accountHint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
   },
   accountsContainer: {
     width: "100%",

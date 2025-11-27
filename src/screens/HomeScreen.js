@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,123 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Menu, Users, ShoppingCart, Calendar, Home } from "lucide-react-native";
+import { auth, database } from "../config/firebaseConfig";
+import { getUserData } from "../services/authService";
+import { getSharedAccountInfo } from "../services/accountService";
+import { ref, update } from 'firebase/database';
 
 export default function HomeScreen({ navigation }) {
+  const [loading, setLoading] = useState(true);
+  const [coupleNames, setCoupleNames] = useState("Jessica y Michael");
+  const [daysUntilWedding, setDaysUntilWedding] = useState(90);
+  const [weddingDate, setWeddingDate] = useState(null);
+  const [progressPercentage, setProgressPercentage] = useState(70);
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+
+      // Obtener datos del usuario actual
+      const userData = await getUserData(currentUser.uid);
+      
+      // Actualizar nombre en Firebase si es necesario
+      if (currentUser.displayName && userData.success) {
+        const currentName = userData.data.name;
+        const emailPrefix = currentUser.email?.split('@')[0];
+        
+        // Si el nombre es el email o no existe, actualizar con displayName
+        if (!currentName || currentName === emailPrefix) {
+          console.log('Actualizando nombre en Firebase:', currentUser.displayName);
+          await update(ref(database, `users/${currentUser.uid}`), {
+            name: currentUser.displayName
+          });
+          // Actualizar userData local
+          userData.data.name = currentUser.displayName;
+        }
+      }
+      
+      if (userData.success && userData.data.sharedAccountCode) {
+        // Obtener información de la cuenta compartida
+        const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
+        
+        if (accountInfo.success && accountInfo.account.members) {
+          const members = accountInfo.account.members;
+          
+          // Obtener nombres de los miembros
+          if (members.length === 2) {
+            // Asegurar que el usuario actual use su nombre actualizado
+            let name1 = members[0].uid === currentUser.uid 
+              ? (userData.data.name || currentUser.displayName || members[0].name)
+              : members[0].name;
+            let name2 = members[1].uid === currentUser.uid 
+              ? (userData.data.name || currentUser.displayName || members[1].name)
+              : members[1].name;
+            
+            setCoupleNames(`${name1} y ${name2}`);
+          } else if (members.length === 1) {
+            let name = members[0].uid === currentUser.uid
+              ? (userData.data.name || currentUser.displayName || members[0].name)
+              : members[0].name;
+            setCoupleNames(name);
+          }
+          
+          // Calcular días hasta la boda
+          if (userData.data.weddingDate) {
+            const wedding = new Date(userData.data.weddingDate);
+            setWeddingDate(wedding);
+            const today = new Date();
+            const diffTime = wedding - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+            
+            // Calcular progreso (desde createdAt hasta weddingDate)
+            if (userData.data.createdAt) {
+              const startDate = new Date(userData.data.createdAt);
+              const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+              const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+              const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+              setProgressPercentage(Math.round(progress));
+            }
+          }
+        }
+      } else if (userData.success) {
+        // Usuario sin cuenta compartida
+        const name = userData.data.name || currentUser.displayName || 'Usuario';
+        setCoupleNames(name);
+        
+        if (userData.data.weddingDate) {
+          const wedding = new Date(userData.data.weddingDate);
+          setWeddingDate(wedding);
+          const today = new Date();
+          const diffTime = wedding - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+          
+          // Calcular progreso
+          if (userData.data.createdAt) {
+            const startDate = new Date(userData.data.createdAt);
+            const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+            const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+            const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+            setProgressPercentage(Math.round(progress));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const categories = [
     { id: 1, name: "Vestidos", icon: "👗", color: "#FFE5E5" },
     { id: 2, name: "Iglesias", icon: "⛪", color: "#FFE5F5" },
@@ -49,16 +161,22 @@ export default function HomeScreen({ navigation }) {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeTitle}>¡Bienvenidos</Text>
-            <Text style={styles.welcomeTitle}>Jessica y Michael!</Text>
-            <Text style={styles.countdown}>90 días para tu boda</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color="#ff6b6b" style={{ marginVertical: 20 }} />
+            ) : (
+              <>
+                <Text style={styles.welcomeTitle}>¡Bienvenidos</Text>
+                <Text style={styles.welcomeTitle}>{coupleNames}!</Text>
+                <Text style={styles.countdown}>{daysUntilWedding} días para tu boda</Text>
+              </>
+            )}
             
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: "70%" }]} />
+                <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
               </View>
-              <Text style={styles.progressText}>70%</Text>
+              <Text style={styles.progressText}>{progressPercentage}%</Text>
             </View>
 
             <Text style={styles.exploreText}>

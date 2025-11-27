@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StatusBar, Alert, TouchableOpacity, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   VStack,
@@ -8,9 +8,13 @@ import {
   Avatar,
   AvatarImage,
   Pressable,
+  Box,
 } from '@gluestack-ui/themed';
-import { ChevronLeft, User, Bell, Languages, Monitor } from 'lucide-react-native';
+import { ChevronLeft, User, Bell, Languages, Monitor, Users, Copy } from 'lucide-react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { getUserData } from '../services/authService';
+import { getSharedAccountInfo } from '../services/accountService';
+import { auth } from '../config/firebaseConfig';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -18,6 +22,43 @@ export default function ProfileScreen() {
   const { name = 'Usuario', role = 'Rol', avatar, bgColor = '#ccc' } = route.params || {};
   const [userAvatar, setUserAvatar] = useState(avatar);
   const [activeMenu, setActiveMenu] = useState('perfil');
+  const [accountCode, setAccountCode] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAccountCode();
+  }, []);
+
+  const loadAccountCode = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userData = await getUserData(currentUser.uid);
+        if (userData.success && userData.data.sharedAccountCode) {
+          const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
+          if (accountInfo.success) {
+            setAccountCode(accountInfo.account.code);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar código:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (accountCode) {
+      try {
+        await Share.share({
+          message: `Código de cuenta Nuptiae: ${accountCode}\n\nUsa este código para unirte a nuestra cuenta compartida.`
+        });
+      } catch (error) {
+        Alert.alert('Código', accountCode);
+      }
+    }
+  };
 
   const menuItems = [
     {
@@ -45,6 +86,16 @@ export default function ProfileScreen() {
         setActiveMenu('notificaciones');
         // Navigate to Notifications in the root stack
         navigation.getParent()?.navigate('Notifications');
+      },
+    },
+    {
+      id: 'cuenta',
+      label: 'Cuenta Compartida',
+      icon: <Users size={24} color="#555" />,
+      onPress: () => {
+        setActiveMenu('cuenta');
+        // Navigate to SharedAccount in the root stack
+        navigation.getParent()?.navigate('SharedAccount');
       },
     },
     {
@@ -95,13 +146,45 @@ export default function ProfileScreen() {
           </HStack>
 
           {/* Avatar y nombre */}
-          <VStack alignItems="center" mb={32}>
+          <VStack alignItems="center" mb={24}>
             <Avatar size="2xl" mb={16} bg={bgColor}>
               {userAvatar && <AvatarImage source={{ uri: userAvatar }} alt={name} />}
             </Avatar>
             <Text fontSize={24} fontWeight="600" color="#111">{name}</Text>
             <Text fontSize={16} color="#666" mt={4}>{role}</Text>
           </VStack>
+
+          {/* Código de Cuenta Compartida */}
+          {accountCode && !loading && (
+            <Box mx={16} mb={24} p={16} borderRadius={16} bg="#fff" borderWidth={1} borderColor="#e0e0e0">
+              <HStack alignItems="center" mb={12}>
+                <Users size={20} color="#ff6b6b" />
+                <Text fontSize={14} fontWeight="600" color="#333" ml={8}>
+                  Código de Cuenta Compartida
+                </Text>
+              </HStack>
+              <HStack 
+                alignItems="center" 
+                justifyContent="space-between"
+                p={12} 
+                borderRadius={12} 
+                bg="#fff5f5"
+                borderWidth={2}
+                borderColor="#ff6b6b"
+                borderStyle="dashed"
+              >
+                <Text fontSize={28} fontWeight="700" color="#ff6b6b" letterSpacing={4}>
+                  {accountCode}
+                </Text>
+                <TouchableOpacity onPress={handleCopyCode}>
+                  <Copy size={20} color="#ff6b6b" />
+                </TouchableOpacity>
+              </HStack>
+              <Text fontSize={12} color="#999" mt={8}>
+                Comparte este código con tu pareja para unirse
+              </Text>
+            </Box>
+          )}
 
           {/* Menu Items */}
           <VStack flex={1} px={16} space={8}>

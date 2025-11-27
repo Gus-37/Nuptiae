@@ -19,6 +19,7 @@ import ProfileDetailScreen from "../screens/ProfileDetailScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
 import LanguageScreen from "../screens/LanguageScreen";
 import DisplayScreen from "../screens/DisplayScreen";
+import SharedAccountScreen from "../screens/SharedAccountScreen";
 
 // Tareas Stack Screens
 import AddTareaScreen from "../screens/AddTareaScreen";
@@ -70,6 +71,11 @@ export default function AppNavigator() {
       <Stack.Screen 
         name="Notifications" 
         component={NotificationsScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen 
+        name="SharedAccount" 
+        component={SharedAccountScreen}
         options={{ animation: 'slide_from_right' }}
       />
       <Stack.Screen 
