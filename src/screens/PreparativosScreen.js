@@ -6,12 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { databaseAgendas } from '../config/firebaseAgendas';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, remove, update } from 'firebase/database';
 
-export default function PreparativosScreen({ hideHeader = false }) {
+export default function PreparativosScreen({ navigation, hideHeader = false }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [preparativos, setPreparativos] = useState([]);
 
@@ -65,29 +66,80 @@ export default function PreparativosScreen({ hideHeader = false }) {
     setExpandedCategory(expandedCategory === id ? null : id);
   };
 
-  const renderPreparativoItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.preparativoItem}
-      onPress={() => toggleCategory(item.id)}
-    >
-      <View style={styles.itemHeader}>
-        <View style={[styles.colorDot, { backgroundColor: item.color }]} />
-        <View style={styles.titleContainer}>
-          <Text style={styles.categoryTitle}>{item.category}</Text>
-        </View>
-        <Ionicons
-          name={expandedCategory === item.id ? 'chevron-up' : 'chevron-down'}
-          size={24}
-          color="#666"
-        />
-      </View>
+  const deletePreparativo = (id) => {
+    Alert.alert(
+      'Eliminar Preparativo',
+      '¿Estás seguro de que deseas eliminar este preparativo?',
+      [
+        { text: 'Cancelar', onPress: () => {} },
+        {
+          text: 'Eliminar',
+          onPress: () => {
+            try {
+              const prepRef = ref(databaseAgendas, `agenda/preparativos/${id}`);
+              remove(prepRef);
+            } catch (err) {
+              console.warn('Error eliminando preparativo:', err);
+              Alert.alert('Error', 'No se pudo eliminar el preparativo');
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
 
-      {expandedCategory === item.id && (
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>{item.description}</Text>
+  const editPreparativo = (item) => {
+    navigation.navigate('AddPreparativo', {
+      editMode: true,
+      preparativo: item,
+      onUpdate: (updated) => {
+        // El onValue listener actualizará el estado automáticamente
+      },
+    });
+  };
+
+  const renderPreparativoItem = ({ item }) => (
+    <View style={styles.preparativoItem}>
+      <TouchableOpacity
+        onPress={() => toggleCategory(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.itemHeader}>
+          <View style={[styles.colorDot, { backgroundColor: item.color }]} />
+          <View style={styles.titleContainer}>
+            <Text style={styles.categoryTitle}>{item.category}</Text>
+          </View>
+          <Ionicons
+            name={expandedCategory === item.id ? 'chevron-up' : 'chevron-down'}
+            size={24}
+            color="#666"
+          />
         </View>
-      )}
-    </TouchableOpacity>
+
+        {expandedCategory === item.id && (
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.description}>{item.description}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Action Buttons */}
+      <View style={styles.itemActions}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => editPreparativo(item)}
+        >
+          <Ionicons name="pencil" size={18} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={() => deletePreparativo(item.id)}
+        >
+          <Ionicons name="trash" size={18} color="#ff6b6b" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -104,7 +156,11 @@ export default function PreparativosScreen({ hideHeader = false }) {
       <FlatList
         data={preparativos}
         renderItem={renderPreparativoItem}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => {
+          if (item.id) return String(item.id);
+          if (item.category) return item.category;
+          return Math.random().toString();
+        }}
         scrollEnabled={true}
         contentContainerStyle={styles.listContent}
       />
@@ -176,5 +232,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     lineHeight: 20,
+  },
+  itemActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    backgroundColor: '#f9f9f9',
+    gap: 8,
+  },
+  actionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    backgroundColor: '#ffe0e0',
   },
 });
