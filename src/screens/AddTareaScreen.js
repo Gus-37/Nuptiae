@@ -21,12 +21,16 @@ export default function AddTareaScreen({ navigation, route }) {
 
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("Importante");
+  const [dueDate, setDueDate] = useState(new Date());
 
   // If in edit mode, prefill fields
   useEffect(() => {
     if (editMode && task) {
       setTitle(task.title || '');
       setPriority(task.priority || 'Importante');
+      setDueDate(task.dueDate ? new Date(task.dueDate) : new Date());
+    } else {
+      setDueDate(new Date());
     }
   }, [editMode, task]);
 
@@ -73,6 +77,7 @@ export default function AddTareaScreen({ navigation, route }) {
       title: title.trim(),
       priority,
       color: priorities.find((p) => p.value === priority)?.color || "#f08080",
+      dueDate: dueDate.getTime(), // Guardar como timestamp
       // when editing, keep existing completed state if present
       completed: task?.completed ?? false,
       createdAt: task?.createdAt ?? Date.now(),
@@ -137,6 +142,26 @@ export default function AddTareaScreen({ navigation, route }) {
               maxLength={100}
             />
             <Text style={styles.charCount}>{title.length}/100</Text>
+          </View>
+
+          {/* Selector de Fecha */}
+          <View style={styles.section}>
+            <Text style={styles.label}>Fecha Vencimiento</Text>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => {
+                // Abre un selector de fecha simple
+                const newDate = new Date(dueDate);
+                newDate.setDate(newDate.getDate() + 1); // Incrementa un día para demostración
+                setDueDate(newDate);
+              }}
+            >
+              <Ionicons name="calendar" size={20} color="#ff6b6b" style={{ marginRight: 10 }} />
+              <Text style={styles.dateButtonText}>
+                {dueDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.dateHint}>Toca para cambiar la fecha (próximamente con calendario)</Text>
           </View>
 
           {/* Selección de prioridad */}
@@ -275,6 +300,28 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 5,
     textAlign: "right",
+  },
+
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: "#f9f9f9",
+  },
+  dateButtonText: {
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "500",
+  },
+  dateHint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 5,
+    fontStyle: "italic",
   },
 
   priorityContainer: {

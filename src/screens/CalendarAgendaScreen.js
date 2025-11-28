@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { databaseAgendas } from '../config/firebaseAgendas';
+import { ref, onValue } from 'firebase/database';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function CalendarAgendaScreen({ hideHeader = false }) {
   const [currentMonth, setCurrentMonth] = useState(9); // Septiembre (0-indexed)
   const [currentYear, setCurrentYear] = useState(2025);
   const [selected, setSelected] = useState({ day: null, month: currentMonth, year: currentYear });
+  const [tasks, setTasks] = useState([]); // Almacenar tareas desde Firebase
 
   const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -41,6 +45,21 @@ export default function CalendarAgendaScreen({ hideHeader = false }) {
     setSelected({ day: today.getDate(), month: today.getMonth(), year: today.getFullYear() });
   }, []);
 
+  // Cargar tareas desde Firebase
+  useEffect(() => {
+    const tasksRef = ref(databaseAgendas, 'agenda/tasks');
+    const unsub = onValue(tasksRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const items = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
+        setTasks(items);
+      } else {
+        setTasks([]);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -57,6 +76,28 @@ export default function CalendarAgendaScreen({ hideHeader = false }) {
     } else {
       setCurrentMonth(currentMonth + 1);
     }
+  };
+
+  // Obtener tareas para un día específico
+  const getTasksForDate = (day, month, year) => {
+    const dateStart = new Date(year, month, day, 0, 0, 0).getTime();
+    const dateEnd = new Date(year, month, day, 23, 59, 59).getTime();
+    
+    return tasks.filter((task) => {
+      const dueDate = task.dueDate || task.createdAt;
+      return dueDate >= dateStart && dueDate <= dateEnd;
+    });
+  };
+
+  // Verificar si un día tiene tareas
+  const dayHasTasks = (day, month, year) => {
+    return getTasksForDate(day, month, year).length > 0;
+  };
+
+  // Obtener colores de tareas para un día
+  const getTaskColorsForDate = (day, month, year) => {
+    const dayTasks = getTasksForDate(day, month, year);
+    return dayTasks.map((t) => t.color).slice(0, 3); // Máximo 3 colores para mostrar
   };
 
   const days = getDaysArray();
@@ -89,11 +130,20 @@ export default function CalendarAgendaScreen({ hideHeader = false }) {
         <View style={styles.calendarGrid}>
           {days.map((day, index) => {
             const isSelected = day && selected.day === day && selected.month === currentMonth && selected.year === currentYear;
+            const taskColors = day ? getTaskColorsForDate(day, currentMonth, currentYear) : [];
             return (
               <View key={index} style={styles.dayCell}>
                 {day ? (
                   <TouchableOpacity onPress={() => setSelected({ day, month: currentMonth, year: currentYear })} style={isSelected ? styles.selectedWrapper : null}>
                     <Text style={[styles.dayText, isSelected && styles.selectedText]}>{day}</Text>
+                    {/* Mostrar puntos de colores si hay tareas */}
+                    {taskColors.length > 0 && (
+                      <View style={styles.taskDots}>
+                        {taskColors.map((color, idx) => (
+                          <View key={idx} style={[styles.taskDot, { backgroundColor: color }]} />
+                        ))}
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ) : (
                   <Text style={styles.dayText}>{''}</Text>
@@ -165,6 +215,35 @@ export default function CalendarAgendaScreen({ hideHeader = false }) {
           })()}
         </View>
       </View>
+
+      {/* Tareas del día seleccionado */}
+      {selected.day && (
+        <View style={styles.dayTasksSection}>
+          <Text style={styles.dayTasksTitle}>
+            Tareas para {selected.day} de {months[selected.month]}
+          </Text>
+          {getTasksForDate(selected.day, selected.month, selected.year).length > 0 ? (
+            <View style={styles.tasksList}>
+              {getTasksForDate(selected.day, selected.month, selected.year).map((task) => (
+                <View key={task.id} style={styles.taskItem}>
+                  <View style={[styles.taskColorBar, { backgroundColor: task.color }]} />
+                  <View style={styles.taskContent}>
+                    <Text style={[styles.taskTitle, task.completed && styles.taskCompleted]}>
+                      {task.title}
+                    </Text>
+                    <Text style={styles.taskPriority}>{task.priority}</Text>
+                  </View>
+                  {task.completed && (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.noTasksText}>No hay tareas para este día</Text>
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -247,5 +326,70 @@ const styles = StyleSheet.create({
   selectedText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  taskDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 3,
+    marginTop: 2,
+  },
+  taskDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  dayTasksSection: {
+    paddingHorizontal: 15,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    marginBottom: 30,
+  },
+  dayTasksTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
+  },
+  tasksList: {
+    gap: 10,
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  taskColorBar: {
+    width: 4,
+    height: 40,
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  taskContent: {
+    flex: 1,
+  },
+  taskTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 3,
+  },
+  taskCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#999',
+  },
+  taskPriority: {
+    fontSize: 12,
+    color: '#666',
+  },
+  noTasksText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });

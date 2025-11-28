@@ -15,7 +15,7 @@ export default function AgendaScreen({ navigation }) {
       case 'tareas':
         return <TareasScreen navigation={navigation} hideHeader={true} />;
       case 'preparativos':
-        return <PreparativosScreen hideHeader={true} />;
+        return <PreparativosScreen navigation={navigation} hideHeader={true} />;
       default:
         return <CalendarAgendaScreen hideHeader={true} />;
     }
@@ -26,6 +26,22 @@ export default function AgendaScreen({ navigation }) {
     { id: 'tareas', label: 'Tareas', icon: 'checkmark-done' },
     { id: 'preparativos', label: 'Preparativos', icon: 'clipboard' },
   ];
+
+  const handleAddPreparativo = () => {
+    navigation.navigate('AddPreparativo', {
+      onAddPreparativo: (newPreparativo) => {
+        // El onValue listener actualizará el estado automáticamente
+      },
+    });
+  };
+
+  const handleAddTarea = () => {
+    navigation.navigate('AddTarea', {
+      onAddTarea: (newTarea) => {
+        // El onValue listener actualizará el estado automáticamente
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -62,6 +78,28 @@ export default function AgendaScreen({ navigation }) {
       <View style={styles.content}>
         {renderScreen()}
       </View>
+
+      {/* FAB para agregar tarea */}
+      {activeTab === 'tareas' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleAddTarea}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
+
+      {/* FAB para agregar preparativo */}
+      {activeTab === 'preparativos' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleAddPreparativo}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -103,5 +141,21 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ff6b6b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
