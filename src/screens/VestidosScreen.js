@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -7,37 +7,26 @@ import {
     ScrollView,
     Image,
     StatusBar,
+    ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, MapPin } from "lucide-react-native";
+import { listenToProducts } from "../services/productsService";
 
 export default function VestidosScreen({ navigation }) {
-    const vestidos = [
-        {
-            id: 1,
-            name: "Vestido #1",
-            price: "$3,000",
-            image: "https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 2,
-            name: "Vestido #2",
-            price: "$4,000",
-            image: "https://images.pexels.com/photos/1070958/pexels-photo-1070958.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 3,
-            name: "Vestido #3",
-            price: "$3,500",
-            image: "https://images.pexels.com/photos/1729931/pexels-photo-1729931.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 4,
-            name: "Vestido #4",
-            price: "$4,500",
-            image: "https://images.pexels.com/photos/1486008/pexels-photo-1486008.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-    ];
+    const [vestidos, setVestidos] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Escuchar cambios en tiempo real
+        const unsubscribe = listenToProducts('vestidos', (products) => {
+            setVestidos(products);
+            setLoading(false);
+        });
+
+        // Cleanup al desmontar
+        return () => unsubscribe();
+    }, []);
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -62,18 +51,36 @@ export default function VestidosScreen({ navigation }) {
                         <Text style={styles.locationText}>Aguascalientes</Text>
                     </TouchableOpacity>
 
-                    {/* Grid */}
-                    <View style={styles.grid}>
-                        {vestidos.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
-                                <View style={styles.cardContent}>
-                                    <Text style={styles.itemName}>{item.name}</Text>
-                                    <Text style={styles.itemPrice}>{item.price}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    {/* Loading */}
+                    {loading ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color="#ff6b6b" />
+                            <Text style={styles.loadingText}>Cargando productos...</Text>
+                        </View>
+                    ) : vestidos.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No hay productos disponibles</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.grid}>
+                            {vestidos.map((item) => (
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={styles.card}
+                                    onPress={() => navigation.navigate('ProductDetail', {
+                                        product: item,
+                                        category: 'Vestidos'
+                                    })}
+                                >
+                                    <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
+                                    <View style={styles.cardContent}>
+                                        <Text style={styles.itemName}>{item.name}</Text>
+                                        <Text style={styles.itemPrice}>{item.price}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -168,5 +175,26 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "500",
         color: "#666",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: "#666",
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: "#999",
     },
 });

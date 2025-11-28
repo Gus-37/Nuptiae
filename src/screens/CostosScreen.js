@@ -44,7 +44,7 @@ export default function CostosScreen({ navigation, route }) {
               navigation.navigate('Home');
             }
           }}>
-            <Menu size={24} color="#333" />
+            <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Costos y presupuesto</Text>
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
@@ -140,8 +140,8 @@ export default function CostosScreen({ navigation, route }) {
               <View key={item.id} style={styles.itemCard}>
                 <View style={styles.itemImage} />
                 <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemDetail}>{item.detail}</Text>
+                  <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.itemDetail} numberOfLines={1}>{item.detail}</Text>
                 </View>
                 <Text style={styles.itemPrice}>{item.price}</Text>
               </View>

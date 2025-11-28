@@ -1,0 +1,14 @@
+{
+  "comment": "REGLAS PARA EL PROYECTO: nuptiae-providers",
+  "note": "Estas reglas van en el proyecto NUEVO de proveedores, NO en nuptiae-login",
+  "rules": {
+    "products": {
+      ".read": true,
+      "$category": {
+        "$productId": {
+          ".write": true
+        }
+      }
+    }
+  }
+}

@@ -71,9 +71,9 @@ export default function ProfileDetailScreen() {
                 <Camera size={22} color="#fff" style={styles.cameraIcon} />
               </Avatar>
             </Pressable>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.role}>{role}</Text>
-            <Text style={styles.username}>Usuario: {username}</Text>
+            <Text style={styles.name} numberOfLines={2}>{name}</Text>
+            <Text style={styles.role} numberOfLines={1}>{role}</Text>
+            <Text style={styles.username} numberOfLines={1}>Usuario: {username}</Text>
           </View>
         </ImageBackground>
 
@@ -171,9 +171,9 @@ const styles = StyleSheet.create({
   headerBackground: { paddingBottom: 24 },
   avatarSection: { alignItems: 'center', marginTop: 16 },
   cameraIcon: { position: 'absolute', bottom: 0, right: 0 },
-  name: { fontSize: 24, fontWeight: '700', color: '#fff', marginTop: 8 },
-  role: { fontSize: 16, color: '#fff', marginTop: 2 },
-  username: { fontSize: 16, color: '#fff', marginTop: 2 },
+  name: { fontSize: 24, fontWeight: '700', color: '#fff', marginTop: 8, textAlign: 'center' },
+  role: { fontSize: 16, color: '#fff', marginTop: 4, textAlign: 'center', letterSpacing: 0.5 },
+  username: { fontSize: 16, color: '#fff', marginTop: 2, textAlign: 'center' },
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,

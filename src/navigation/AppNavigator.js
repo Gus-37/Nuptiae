@@ -13,6 +13,7 @@ import AccesoriosScreen from "../screens/AccesoriosScreen";
 import FotografiaScreen from "../screens/FotografiaScreen";
 import VideoScreen from "../screens/VideoScreen";
 import PromocionesScreen from "../screens/PromocionesScreen";
+import ProductDetailScreen from "../screens/ProductDetailScreen";
 
 // Profile Stack Screens
 import ProfileDetailScreen from "../screens/ProfileDetailScreen";
@@ -61,6 +62,13 @@ export default function AppNavigator() {
       <Stack.Screen name="Fotografia" component={FotografiaScreen} />
       <Stack.Screen name="Video" component={VideoScreen} />
       <Stack.Screen name="Promociones" component={PromocionesScreen} />
+      
+      {/* Product Detail Screen */}
+      <Stack.Screen 
+        name="ProductDetail" 
+        component={ProductDetailScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
       
       {/* Profile Stack Screens */}
       <Stack.Screen 
