@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
-import { Users, Gift, Building, HelpCircle, Calendar, CheckSquare, Clipboard } from "lucide-react-native";
+import { Users, Gift, Building, HelpCircle } from "lucide-react-native";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import FormsScreen from "../screens/FormsScreen";
@@ -57,39 +57,6 @@ function CustomDrawerContent(props) {
         style={styles.drawerItem}
         activeTintColor="#ff6b6b"
         inactiveTintColor="#333"
-      />
-      <DrawerItem
-        label="Agenda"
-        icon={({ focused }) => (
-          <View style={styles.iconContainer}>
-            <Calendar size={22} color={focused ? "#ff6b6b" : "#666"} />
-          </View>
-        )}
-        onPress={() => props.navigation.navigate("Agenda")}
-        labelStyle={styles.drawerLabel}
-        style={styles.drawerItem}
-      />
-      <DrawerItem
-        label="Tareas"
-        icon={({ focused }) => (
-          <View style={styles.iconContainer}>
-            <CheckSquare size={22} color={focused ? "#ff6b6b" : "#666"} />
-          </View>
-        )}
-        onPress={() => props.navigation.navigate("Tareas")}
-        labelStyle={styles.drawerLabel}
-        style={styles.drawerItem}
-      />
-      <DrawerItem
-        label="Preparativos"
-        icon={({ focused }) => (
-          <View style={styles.iconContainer}>
-            <Clipboard size={22} color={focused ? "#ff6b6b" : "#666"} />
-          </View>
-        )}
-        onPress={() => props.navigation.navigate("Preparativos")}
-        labelStyle={styles.drawerLabel}
-        style={styles.drawerItem}
       />
       <DrawerItem
         label="Proveedores"
