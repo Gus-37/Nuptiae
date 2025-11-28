@@ -1,253 +1,98 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Menu, Plus, Calendar, Users, ChevronDown, Home, ShoppingCart } from "lucide-react-native";
+import { Plus, ChevronRight, CheckCircle2, Circle } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { getTareas } from "../services/tareasService";
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function TareasScreen({ navigation }) {
-  const [filterVisible, setFilterVisible] = useState(false);
+  const { colors, fontScale, theme } = useUISettings();
+  const [tareas, setTareas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const tasks = {
-    septiembre: [
-      { id: 1, title: "Buscar micrófonos", priority: "Urgente", color: "#ff6b6b" },
-      { id: 2, title: "Conseguir spot fotos", priority: "Puede esperar", color: "#FFB347" },
-      { id: 3, title: "Confirmar juez civil", priority: "Urgente", color: "#ff6b6b" },
-    ],
-    noviembre: [
-      { id: 4, title: "Buscar micrófonos", priority: "Urgente", color: "#ff6b6b" },
-      { id: 5, title: "Conseguir spot fotos", priority: "Puede esperar", color: "#FFB347" },
-    ],
+  const loadTareas = async () => {
+    setLoading(true);
+    const result = await getTareas();
+    if (result.success) setTareas(result.data);
+    setLoading(false);
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTareas();
+    }, [])
+  );
+
+  const renderTarea = ({ item }) => (
+    <TouchableOpacity
+      style={[styles.tareaCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      onPress={() => navigation.navigate("AddTarea", { tarea: item })}
+    >
+      <View style={styles.tareaLeft}>
+        {item.completed ? (
+          <CheckCircle2 size={24} color={colors.accent} />
+        ) : (
+          <Circle size={24} color={colors.muted} />
+        )}
+        <View style={styles.tareaTexts}>
+          <Text style={[styles.tareaTitle, { color: colors.text, fontSize: 16 * fontScale }]}>{item.title}</Text>
+          {item.description && (
+            <Text style={[styles.tareaDescription, { color: colors.muted, fontSize: 13 * fontScale }]} numberOfLines={1}>
+              {item.description}
+            </Text>
+          )}
+        </View>
+      </View>
+      <ChevronRight size={20} color={colors.muted} />
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate('Home');
-            }
-          }}>
-            <ArrowLeft size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Tareas</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* Filter Bar */}
-        <View style={styles.filterBar}>
-          <Text style={styles.filterLabel}>Filtrado por</Text>
-          <TouchableOpacity style={styles.filterButton}>
-            <Text style={styles.filterText}>Fecha</Text>
-            <ChevronDown size={16} color="#333" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 24 * fontScale }]}>Tareas</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("AddTarea")} style={[styles.addButton, { backgroundColor: colors.accent }]}>
+            <Plus size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Septiembre Section */}
-          <View style={styles.monthSection}>
-            <Text style={styles.monthTitle}>Septiembre</Text>
-            {tasks.septiembre.map((task) => (
-              <TouchableOpacity key={task.id} style={styles.taskCard}>
-                <View style={[styles.taskIndicator, { backgroundColor: task.color }]} />
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  <Text style={styles.taskPriority}>{task.priority}</Text>
-                </View>
-                <ChevronDown size={20} color="#ccc" style={styles.chevron} />
-              </TouchableOpacity>
-            ))}
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={colors.accent} />
           </View>
-
-          {/* Noviembre Section */}
-          <View style={styles.monthSection}>
-            <Text style={styles.monthTitle}>Noviembre</Text>
-            {tasks.noviembre.map((task) => (
-              <TouchableOpacity key={task.id} style={styles.taskCard}>
-                <View style={[styles.taskIndicator, { backgroundColor: task.color }]} />
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  <Text style={styles.taskPriority}>{task.priority}</Text>
-                </View>
-                <ChevronDown size={20} color="#ccc" style={styles.chevron} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-
-        {/* Add Button */}
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.getParent()?.navigate('AddTarea', {
-            onAddTarea: (newTarea) => {
-              console.log('Nueva tarea:', newTarea);
+        ) : (
+          <FlatList
+            data={tareas}
+            renderItem={renderTarea}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text style={[styles.emptyText, { color: colors.muted, fontSize: 14 * fontScale }]}>
+                No hay tareas. Presiona + para agregar una.
+              </Text>
             }
-          })}
-        >
-          <Plus size={24} color="#fff" />
-        </TouchableOpacity>
-
-        {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <Home size={24} color="#666" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-          >
-            <ShoppingCart size={24} color="#666" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-            <Calendar size={24} color="#ff6b6b" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Cuentas")}>
-            <Users size={24} color="#666" />
-          </TouchableOpacity>
-        </View>
+          />
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  filterBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  filterLabel: {
-    fontSize: 14,
-    color: "#666",
-  },
-  filterButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
-  content: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  monthSection: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  monthTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 12,
-  },
-  taskCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  taskIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  taskPriority: {
-    fontSize: 13,
-    color: "#666",
-  },
-  chevron: {
-    marginLeft: 8,
-  },
-  addButton: {
-    position: "absolute",
-    bottom: 80,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#ff6b6b",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  navIcon: {
-    fontSize: 24,
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
+  headerTitle: { fontWeight: "700" },
+  addButton: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  listContent: { padding: 16 },
+  tareaCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1 },
+  tareaLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
+  tareaTexts: { marginLeft: 12, flex: 1 },
+  tareaTitle: { fontWeight: "600" },
+  tareaDescription: { marginTop: 2 },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyText: { textAlign: "center", marginTop: 40 },
 });

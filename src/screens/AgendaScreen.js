@@ -7,40 +7,73 @@ import {
   TouchableOpacity,
   StatusBar,
   Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Menu, Calendar as CalendarIcon, CheckSquare, Briefcase, Plus, ArrowLeft, Users, ShoppingCart, DollarSign, Home } from "lucide-react-native";
+import { Menu, Calendar as CalendarIcon, CheckSquare, Briefcase, Plus, ArrowLeft, Users, ShoppingCart, DollarSign, Home, Clock } from "lucide-react-native";
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function AgendaScreen({ navigation }) {
-  const [selectedTab, setSelectedTab] = useState("calendario");
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 8)); // Septiembre 2025
+  const { colors, fontScale, theme } = useUISettings();
+  const [selectedTab, setSelectedTab] = useState("tareas");
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 8)); 
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const [eventos, setEventos] = useState([
+    { id: 1, title: "Cita con planificador", date: "2025-12-01", time: "10:00 AM" },
+    { id: 2, title: "Prueba de vestido", date: "2025-12-05", time: "2:00 PM" },
+    { id: 3, title: "Reunión con DJ", date: "2025-12-10", time: "4:30 PM" },
+  ]);
+
+  const renderEvento = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.eventoCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
+      <View style={[styles.iconCircle, { backgroundColor: colors.accent + "22" }]}>
+        <CalendarIcon size={20} color={colors.accent} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.eventoTitle, { color: colors.text, fontSize: 16 * fontScale }]}>
+          {item.title}
+        </Text>
+        <View style={styles.eventoMeta}>
+          <Text style={[styles.eventoDate, { color: colors.text, fontSize: 13 * fontScale }]}>
+            {item.date}
+          </Text>
+          <View style={styles.timeBadge}>
+            <Clock size={12} color={colors.text} />
+            <Text style={[styles.eventoTime, { color: colors.text, fontSize: 12 * fontScale }]}>
+              {item.time}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    return { daysInMonth, startingDayOfWeek };
+    return { daysInMonth: lastDay.getDate(), startingDayOfWeek: firstDay.getDay() };
   };
 
   const renderCalendar = () => {
     const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
     const days = [];
-    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
-                       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    
-    // Empty cells for days before month starts
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(<View key={`empty-${i}`} style={styles.calendarDay} />);
     }
-    
-    // Days of the month
+
     for (let day = 1; day <= daysInMonth; day++) {
-      const isHighlighted = day === 2; // Highlight the 2nd day
+      const isHighlighted = day === 2;
       days.push(
         <TouchableOpacity key={day} style={styles.calendarDay}>
           <View style={[styles.dayCircle, isHighlighted && styles.dayHighlighted]}>
@@ -54,10 +87,14 @@ export default function AgendaScreen({ navigation }) {
 
     return (
       <View>
-        <Text style={styles.monthTitle}>{monthNames[currentMonth.getMonth()]}</Text>
+        <Text style={[styles.monthTitle, { color: colors.text }]}>
+          {monthNames[currentMonth.getMonth()]}
+        </Text>
         <View style={styles.calendarHeader}>
           {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-            <Text key={index} style={styles.weekDay}>{day}</Text>
+            <Text key={index} style={[styles.weekDay, { color: colors.text }]}>
+              {day}
+            </Text>
           ))}
         </View>
         <View style={styles.calendarGrid}>{days}</View>
@@ -66,194 +103,118 @@ export default function AgendaScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+      <StatusBar barStyle={theme === "light" ? "dark-content" : "light-content"} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate('Home');
-            }
-          }}>
-            <ArrowLeft size={24} color="#333" />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Home")}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Agenda</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Agenda</Text>
           <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <Menu size={24} color="#333" />
+            <Menu size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        {/* Menu Modal */}
-        <Modal
-          visible={menuVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setMenuVisible(false)}
-        >
+        {/* Modal Menu */}
+        <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
           <TouchableOpacity
             style={styles.modalOverlay}
             activeOpacity={1}
             onPress={() => setMenuVisible(false)}
           >
-            <View style={styles.menuContainer}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  navigation.navigate("Costos", { tab: "compras" });
-                }}
-              >
-                <ShoppingCart size={20} color="#333" />
-                <Text style={styles.menuItemText}>Compras</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  navigation.navigate("Costos", { tab: "carrito" });
-                }}
-              >
-                <CheckSquare size={20} color="#333" />
-                <Text style={styles.menuItemText}>Carrito</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  navigation.navigate("Costos", { tab: "presupuesto" });
-                }}
-              >
-                <DollarSign size={20} color="#333" />
-                <Text style={styles.menuItemText}>Presupuesto</Text>
-              </TouchableOpacity>
+            <View style={[styles.menuContainer, { backgroundColor: colors.card }]}>
+              {[
+                { icon: ShoppingCart, label: "Compras", tab: "compras" },
+                { icon: CheckSquare, label: "Carrito", tab: "carrito" },
+                { icon: DollarSign, label: "Presupuesto", tab: "presupuesto" },
+              ].map((item, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setMenuVisible(false);
+                    navigation.navigate("Costos", { tab: item.tab });
+                  }}
+                >
+                  <item.icon size={20} color={colors.text} />
+                  <Text style={[styles.menuItemText, { color: colors.text }]}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </TouchableOpacity>
         </Modal>
 
         {/* Tabs */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === "tareas" && styles.tabActive]}
-            onPress={() => setSelectedTab("tareas")}
-          >
-            <CheckSquare size={20} color={selectedTab === "tareas" ? "#ff6b6b" : "#666"} />
-            <Text style={[styles.tabText, selectedTab === "tareas" && styles.tabTextActive]}>
-              Tareas
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === "calendario" && styles.tabActive]}
-            onPress={() => setSelectedTab("calendario")}
-          >
-            <CalendarIcon size={20} color={selectedTab === "calendario" ? "#ff6b6b" : "#666"} />
-            <Text style={[styles.tabText, selectedTab === "calendario" && styles.tabTextActive]}>
-              Calendario
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === "preparativos" && styles.tabActive]}
-            onPress={() => setSelectedTab("preparativos")}
-          >
-            <Briefcase size={20} color={selectedTab === "preparativos" ? "#ff6b6b" : "#666"} />
-            <Text style={[styles.tabText, selectedTab === "preparativos" && styles.tabTextActive]}>
-              Preparativos
-            </Text>
-          </TouchableOpacity>
+        <View style={[styles.tabs, { borderBottomColor: colors.border }]}>
+          {[
+            { key: "tareas", label: "Tareas", icon: CheckSquare },
+            { key: "calendario", label: "Calendario", icon: CalendarIcon },
+            { key: "preparativos", label: "Preparativos", icon: Briefcase },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tab, selectedTab === tab.key && styles.tabActive]}
+              onPress={() => setSelectedTab(tab.key)}
+            >
+              <tab.icon size={20} color={selectedTab === tab.key ? colors.accent : colors.muted} />
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: selectedTab === tab.key ? colors.accent : colors.muted },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
+        {/* Content */}
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {selectedTab === "tareas" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Próximas Tareas</Text>
-              <View style={styles.taskCard}>
-                <View style={styles.taskDot} />
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>Asignar maestro de ceremonias</Text>
-                  <Text style={styles.taskSubtitle}>Fecha límite: 2035jun25</Text>
-                </View>
-              </View>
-              <View style={styles.taskCard}>
-                <View style={styles.taskDot} />
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>Lista de canciones nupciales</Text>
-                  <Text style={styles.taskSubtitle}>Fecha límite: 3000/5/28</Text>
-                </View>
-              </View>
+              <FlatList
+                data={eventos}
+                renderItem={renderEvento}
+                keyExtractor={(item) => item.id.toString()}
+              />
             </View>
           )}
 
           {selectedTab === "calendario" && (
             <View style={styles.section}>
               {renderCalendar()}
-              <View style={{ marginTop: 30 }}>
-                {renderCalendar()}
-              </View>
             </View>
           )}
 
           {selectedTab === "preparativos" && (
             <View style={styles.section}>
-              <View style={styles.preparativoCard}>
-                <View style={styles.preparativoIcon}>
-                  <View style={styles.redSquare} />
-                </View>
-                <Text style={styles.preparativoText}>
-                  Establecer el presupuesto: Definir cuánto pueden gastar para tener una idea clara de las opciones.
-                </Text>
-              </View>
-              <View style={styles.preparativoCard}>
-                <View style={styles.preparativoIcon}>
-                  <View style={styles.redSquare} />
-                </View>
-                <Text style={styles.preparativoText}>
-                  Crear la lista de invitados: Decidir a quién invitar antes de buscar el lugar de la celebración.
-                </Text>
-              </View>
-              <View style={styles.preparativoCard}>
-                <View style={styles.preparativoIcon}>
-                  <View style={styles.redSquare} />
-                </View>
-                <Text style={styles.preparativoText}>
-                  Contratar proveedores clave: Reservar a tiempo el catering, el fotógrafo, el videógrafo y la DJ o banda.
-                </Text>
-              </View>
-              <View style={styles.preparativoCard}>
-                <View style={styles.preparativoIcon}>
-                  <View style={styles.redSquare} />
-                </View>
-                <Text style={styles.preparativoText}>
-                  Elegir fecha y lugar: Buscar un espacio para la ceremonia y la recepción que se ajuste a su estilo y al número de invitados.
-                </Text>
-              </View>
-              <TouchableOpacity 
-                style={styles.addButton}
-                onPress={() => navigation.navigate("Tareas")}
-              >
-                <Plus size={24} color="#fff" />
-              </TouchableOpacity>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Preparativos iniciales
+              </Text>
+              <Text style={[styles.preparativoText, { color: colors.text }]}>
+                ✨ Establecer presupuesto, contratar proveedores, organizar invitados y más...
+              </Text>
             </View>
           )}
         </ScrollView>
 
         {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <Home size={24} color="#666" />
+            <Home size={24} color={colors.muted} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-          >
-            <ShoppingCart size={24} color="#666" />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Costos")}>
+            <ShoppingCart size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <CalendarIcon size={24} color="#ff6b6b" />
+            <CalendarIcon size={24} color={colors.accent} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Cuentas")}>
-            <Users size={24} color="#666" />
+            <Users size={24} color={colors.muted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -262,259 +223,25 @@ export default function AgendaScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  tabs: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    gap: 6,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#ff6b6b",
-  },
-  tabText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  tabTextActive: {
-    color: "#ff6b6b",
-    fontWeight: "600",
-  },
-  content: {
-    flex: 1,
-  },
-
-  section: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 16,
-  },
-  taskCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#FFE5E5",
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  taskDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#ff6b6b",
-    marginRight: 12,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-  },
-  taskSubtitle: {
-    fontSize: 13,
-    color: "#666",
-  },
-  monthTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
-  calendarHeader: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 8,
-  },
-  weekDay: {
-    width: 40,
-    textAlign: "center",
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#666",
-  },
-  calendarGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  calendarDay: {
-    width: "14.28%",
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  dayCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dayHighlighted: {
-    backgroundColor: "#ff6b6b",
-  },
-  dayText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  dayTextHighlighted: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  responsableCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  responsableLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginRight: 8,
-  },
-  responsableName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
-  preparativoCard: {
-    flexDirection: "row",
-    padding: 16,
-    backgroundColor: "#FFE5E5",
-    borderRadius: 12,
-    marginBottom: 12,
-    alignItems: "flex-start",
-  },
-  preparativoIcon: {
-    marginRight: 12,
-    paddingTop: 2,
-  },
-  redSquare: {
-    width: 16,
-    height: 16,
-    backgroundColor: "#ff6b6b",
-    borderRadius: 2,
-  },
-  preparativoText: {
-    flex: 1,
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
-  },
-  addButton: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#ff6b6b",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  calendarPlaceholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: "#999",
-    marginTop: 12,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  navIcon: {
-    fontSize: 24,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-  },
-  menuContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginTop: 60,
-    marginLeft: 16,
-    paddingVertical: 8,
-    minWidth: 200,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: "#333",
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
+  headerTitle: { fontSize: 18, fontWeight: "600" },
+  tabs: { flexDirection: "row", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
+  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 8, gap: 6 },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: "#ff6b6b" },
+  tabText: { fontSize: 14 },
+  content: { flex: 1 },
+  section: { padding: 20 },
+  eventoCard: { flexDirection: "row", alignItems: "center", padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1 },
+  iconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  eventoTitle: { fontWeight: "600", marginBottom: 6 },
+  eventoMeta: { flexDirection: "row", alignItems: "center", gap: 10 },
+  timeBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
+  bottomNav: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingVertical: 12, backgroundColor: "#fff", borderTopWidth: 1 },
+  navItem: { flex: 1, alignItems: "center", paddingVertical: 8 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "flex-start" },
+  menuContainer: { borderRadius: 12, marginTop: 60, marginLeft: 16, paddingVertical: 8, minWidth: 200 },
+  menuItem: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16, gap: 12 },
+  menuItemText: { fontSize: 16 },
 });

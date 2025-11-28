@@ -1,75 +1,58 @@
 import React from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    Image,
-    StatusBar,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, MapPin } from "lucide-react-native";
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function VestidosScreen({ navigation }) {
+    const { colors, fontScale, theme } = useUISettings();
+
     const vestidos = [
-        {
-            id: 1,
-            name: "Vestido #1",
-            price: "$3,000",
-            image: "https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 2,
-            name: "Vestido #2",
-            price: "$4,000",
-            image: "https://images.pexels.com/photos/1070958/pexels-photo-1070958.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 3,
-            name: "Vestido #3",
-            price: "$3,500",
-            image: "https://images.pexels.com/photos/1729931/pexels-photo-1729931.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 4,
-            name: "Vestido #4",
-            price: "$4,500",
-            image: "https://images.pexels.com/photos/1486008/pexels-photo-1486008.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
+        { id: 1, name: "Vestido #1", price: "$3,000", image: "https://images.pexels.com/photos/1457983/pexels-photo-1457983.jpeg?auto=compress&cs=tinysrgb&w=600" },
+        { id: 2, name: "Vestido #2", price: "$4,000", image: "https://images.pexels.com/photos/1070958/pexels-photo-1070958.jpeg?auto=compress&cs=tinysrgb&w=600" },
+        { id: 3, name: "Vestido #3", price: "$3,500", image: "https://images.pexels.com/photos/1729931/pexels-photo-1729931.jpeg?auto=compress&cs=tinysrgb&w=600" },
+        { id: 4, name: "Vestido #4", price: "$4,500", image: "https://images.pexels.com/photos/1486008/pexels-photo-1486008.jpeg?auto=compress&cs=tinysrgb&w=600" },
     ];
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-            <View style={styles.container}>
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top', 'left', 'right']}>
+            <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+            <View style={[styles.container, { backgroundColor: colors.bg }]}>
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()}
                         style={styles.headerButton}
                     >
-                        <ArrowLeft size={24} color="#333" />
+                        <ArrowLeft size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Vestidos</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+                        Vestidos
+                    </Text>
                     <View style={styles.headerButton} />
                 </View>
 
                 <ScrollView style={styles.scrollContent}>
                     {/* Location */}
-                    <TouchableOpacity style={styles.locationContainer}>
-                        <MapPin size={16} color="#ff6b6b" />
-                        <Text style={styles.locationText}>Aguascalientes</Text>
+                    <TouchableOpacity style={[styles.locationContainer, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                        <MapPin size={16} color={colors.accent} />
+                        <Text style={[styles.locationText, { color: colors.text, fontSize: 15 * fontScale }]}>
+                            Aguascalientes
+                        </Text>
                     </TouchableOpacity>
 
                     {/* Grid */}
                     <View style={styles.grid}>
                         {vestidos.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
+                            <TouchableOpacity key={item.id} style={[styles.card, { backgroundColor: colors.card }]}>
+                                <Image source={{ uri: item.image }} style={styles.image} />
                                 <View style={styles.cardContent}>
-                                    <Text style={styles.itemName}>{item.name}</Text>
-                                    <Text style={styles.itemPrice}>{item.price}</Text>
+                                    <Text style={[styles.itemName, { color: colors.text, fontSize: 14 * fontScale }]}>
+                                        {item.name}
+                                    </Text>
+                                    <Text style={[styles.itemPrice, { color: colors.muted, fontSize: 14 * fontScale }]}>
+                                        {item.price}
+                                    </Text>
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -83,11 +66,9 @@ export default function VestidosScreen({ navigation }) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: "#fff",
     },
     container: {
         flex: 1,
-        backgroundColor: "#f5f5f5",
     },
     scrollContent: {
         flex: 1,
@@ -98,19 +79,10 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         paddingVertical: 16,
-        backgroundColor: "#fff",
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
     },
     headerTitle: {
-        fontSize: 18,
         fontWeight: "600",
-        color: "#333",
     },
     headerButton: {
         padding: 4,
@@ -121,13 +93,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         paddingVertical: 16,
-        backgroundColor: "#f9f9f9",
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
     },
     locationText: {
-        fontSize: 15,
-        color: "#333",
         marginLeft: 6,
         fontWeight: "500",
     },
@@ -139,15 +107,9 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "48%",
-        backgroundColor: "#fff",
         borderRadius: 12,
         marginBottom: 16,
         overflow: "hidden",
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
     },
     image: {
         width: "100%",
@@ -159,14 +121,10 @@ const styles = StyleSheet.create({
         padding: 12,
     },
     itemName: {
-        fontSize: 14,
         fontWeight: "600",
-        color: "#333",
         marginBottom: 4,
     },
     itemPrice: {
-        fontSize: 14,
         fontWeight: "500",
-        color: "#666",
     },
 });

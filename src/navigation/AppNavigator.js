@@ -13,12 +13,14 @@ import AccesoriosScreen from "../screens/AccesoriosScreen";
 import FotografiaScreen from "../screens/FotografiaScreen";
 import VideoScreen from "../screens/VideoScreen";
 import PromocionesScreen from "../screens/PromocionesScreen";
+import PantallaScreen from "../screens/PantallaScreen";
+import ProfileEditScreen from '../screens/ProfileEditScreen';
 
 // Profile Stack Screens
 import ProfileDetailScreen from "../screens/ProfileDetailScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
-import LanguageScreen from "../screens/LanguageScreen";
-import DisplayScreen from "../screens/DisplayScreen";
+import ActivityScreen from "../screens/ActivityScreen";
+import IdiomaScreen from "../screens/IdiomaScreen";
 import SharedAccountScreen from "../screens/SharedAccountScreen";
 
 // Tareas Stack Screens
@@ -61,6 +63,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Fotografia" component={FotografiaScreen} />
       <Stack.Screen name="Video" component={VideoScreen} />
       <Stack.Screen name="Promociones" component={PromocionesScreen} />
+      <Stack.Screen name="Pantalla" component={PantallaScreen} options={{ headerShown: false }} />
       
       {/* Profile Stack Screens */}
       <Stack.Screen 
@@ -71,7 +74,12 @@ export default function AppNavigator() {
       <Stack.Screen 
         name="Notifications" 
         component={NotificationsScreen}
-        options={{ animation: 'slide_from_right' }}
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="Activity" 
+        component={ActivityScreen}
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
         name="SharedAccount" 
@@ -80,13 +88,13 @@ export default function AppNavigator() {
       />
       <Stack.Screen 
         name="Language" 
-        component={LanguageScreen}
-        options={{ animation: 'slide_from_right' }}
+        component={IdiomaScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="DisplayScreen" 
-        component={DisplayScreen}
-        options={{ animation: 'slide_from_right' }}
+        name="ProfileEdit" 
+        component={ProfileEditScreen}
+        options={{ headerShown: false }} 
       />
       
       {/* Tareas Stack Screens */}

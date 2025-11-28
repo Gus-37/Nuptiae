@@ -1,192 +1,142 @@
-import React, { useState } from 'react';
-import { StatusBar, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { VStack, HStack, Text, Pressable } from '@gluestack-ui/themed';
-import { ChevronLeft } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Switch
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ArrowLeft, Sun, Moon } from "lucide-react-native";
+import { useUISettings } from "../context/UISettingsContext";
 
-export default function DisplayScreen() {
-  const navigation = useNavigation();
+export default function PantallaScreen({ navigation }) {
+  const { theme, setTheme, textSize, setTextSize, fontScale, colors } = useUISettings();
 
-  const [settings, setSettings] = useState({
-    theme: 'light',         // light | dark | auto
-    textSize: 'normal',     // normal | large | extra
-    highContrast: false,    // alto contraste
-    animations: true,       // animaciones habilitadas
-    primaryColor: '#FF5733' // color principal de botones, calendario, etc.
-  });
-
-  const toggleSetting = (key) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const changeSetting = (key, value) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Opciones de tamaño de texto
+  const darkMode = theme === "dark";
   const textSizes = [
-    { id: 'normal', label: 'Normal', fontSize: 16 },
-    { id: 'large', label: 'Grande', fontSize: 20 },
-    { id: 'extra', label: 'Extra Grande', fontSize: 24 },
-  ];
-
-  // Paleta de colores por tema (varios colores por tema)
-  const colorThemes = [
-    { id: 'minimalista', label: 'Minimalista', colors: ['#607D8B', '#CFD8DC', '#B0BEC5'] },
-    { id: 'vibrante', label: 'Vibrante', colors: ['#FF5722', '#FFC107', '#FFEB3B'] },
-    { id: 'pastel', label: 'Pastel', colors: ['#FFB74D', '#81C784', '#64B5F6'] },
-    { id: 'oscuro', label: 'Oscuro', colors: ['#455A64', '#37474F', '#263238'] },
-    { id: 'fresco', label: 'Fresco', colors: ['#4CAF50', '#8BC34A', '#CDDC39'] },
+    { id: "normal", label: "Normal", base: 16 },
+    { id: "large", label: "Grande", base: 18 },
+    { id: "extra", label: "Extra Grande", base: 21 },
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-          <VStack space={24}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top","left","right"]}>
+      <StatusBar
+        barStyle={darkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.bg}
+      />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
 
-            {/* Header */}
-            <HStack py={16} alignItems="center">
-              <Pressable onPress={() => navigation.goBack()}>
-                <ChevronLeft size={24} color="#999" />
-              </Pressable>
-              <Text fontSize={20} fontWeight="600" ml={16}>Pantalla</Text>
-            </HStack>
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ArrowLeft size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+            Pantalla
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-            {/* Sección: Tema */}
-            <VStack space={12}>
-              <Text fontSize={18} fontWeight="600">Tema</Text>
-              <HStack space={12}>
-                {['light', 'dark', 'auto'].map((theme) => {
-                  const isActive = settings.theme === theme;
-                  return (
-                    <Pressable key={theme} flex={1} onPress={() => changeSetting('theme', theme)}>
-                      <VStack
-                        alignItems="center"
-                        justifyContent="center"
-                        px={16}
-                        py={20}
-                        borderRadius={16}
-                        style={{ backgroundColor: isActive ? '#FFE6CC' : '#f5f5f5' }}
-                      >
-                        <Text
-                          fontSize={16}
-                          fontWeight={isActive ? '600' : '400'}
-                          style={{ color: isActive ? '#e57373' : '#555' }}
-                        >
-                          {theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Automático'}
-                        </Text>
-                      </VStack>
-                    </Pressable>
-                  );
-                })}
-              </HStack>
-            </VStack>
+        <ScrollView style={styles.content} contentContainerStyle={{ padding: 20 }}>
 
-            {/* Sección: Tamaño de texto */}
-            <VStack space={12}>
-              <Text fontSize={18} fontWeight="600">Tamaño de texto</Text>
-              <HStack space={12}>
-                {textSizes.map((size) => {
-                  const isActive = settings.textSize === size.id;
-                  return (
-                    <Pressable key={size.id} flex={1} onPress={() => changeSetting('textSize', size.id)}>
-                      <VStack
-                        alignItems="center"
-                        justifyContent="center"
-                        px={16}
-                        py={20}
-                        borderRadius={16}
-                        style={{ backgroundColor: isActive ? '#FFE6CC' : '#f5f5f5' }}
-                      >
-                        <Text
-                          fontSize={size.fontSize}
-                          fontWeight={isActive ? '600' : '400'}
-                          style={{ color: isActive ? '#e57373' : '#555' }}
-                        >
-                          {size.label}
-                        </Text>
-                      </VStack>
-                    </Pressable>
-                  );
-                })}
-              </HStack>
-            </VStack>
+          {/* Modo oscuro */}
+          <View style={styles.section}>
+            <View style={[styles.optionRow, { backgroundColor: colors.card }]}>
+              <View style={styles.optionLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: darkMode ? "#1E1E1E" : "#f5f5f5" }]}>
+                  {darkMode ? <Moon size={20} color={colors.muted} /> : <Sun size={20} color={colors.muted} />}
+                </View>
+                <Text style={[styles.optionText, { color: colors.text, fontSize: 16 * fontScale }]}>
+                  Modo oscuro
+                </Text>
+              </View>
+              <Switch
+                value={darkMode}
+                onValueChange={(v) => setTheme(v ? "dark" : "light")}
+                trackColor={{ false: "#e0e0e0", true: colors.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
 
-            {/* Sección: Accesibilidad */}
-            <VStack space={12}>
-              <Text fontSize={18} fontWeight="600">Accesibilidad</Text>
-              <VStack space={12}>
-                <HStack
-                  alignItems="center"
-                  justifyContent="space-between"
-                  px={16}
-                  py={16}
-                  borderRadius={16}
-                  style={{ backgroundColor: settings.highContrast ? '#FFE6CC' : '#f5f5f5' }}
+          {/* Tamaño de texto */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 16 * fontScale }]}>
+              Tamaño de texto
+            </Text>
+            {textSizes.map(ts => {
+              const active = textSize === ts.id;
+              return (
+                <TouchableOpacity
+                  key={ts.id}
+                  style={[
+                    styles.sizeRow,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: active ? colors.accent : "transparent",
+                      borderWidth: active ? 2 : 0
+                    }
+                  ]}
+                  onPress={() => setTextSize(ts.id)}
                 >
-                  <Text fontSize={16} fontWeight={settings.highContrast ? '600' : '400'}>Alto contraste</Text>
-                  <Pressable onPress={() => toggleSetting('highContrast')}>
-                    <Text style={{ color: settings.highContrast ? '#e57373' : '#555' }}>{settings.highContrast ? 'Activado' : 'Desactivado'}</Text>
-                  </Pressable>
-                </HStack>
+                  <Text
+                    style={{
+                      color: active ? colors.accent : colors.text,
+                      fontSize: ts.base * fontScale,
+                      fontWeight: active ? "600" : "500"
+                    }}
+                  >
+                    {ts.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-                <HStack
-                  alignItems="center"
-                  justifyContent="space-between"
-                  px={16}
-                  py={16}
-                  borderRadius={16}
-                  style={{ backgroundColor: settings.animations ? '#FFE6CC' : '#f5f5f5' }}
-                >
-                  <Text fontSize={16} fontWeight={settings.animations ? '600' : '400'}>Animaciones</Text>
-                  <Pressable onPress={() => toggleSetting('animations')}>
-                    <Text style={{ color: settings.animations ? '#e57373' : '#555' }}>{settings.animations ? 'Activado' : 'Desactivado'}</Text>
-                  </Pressable>
-                </HStack>
-              </VStack>
-            </VStack>
-
-            {/* Sección: Paleta de colores por tema */}
-            <VStack space={12}>
-              <Text fontSize={18} fontWeight="600">Paleta de colores</Text>
-              <VStack space={12}>
-                {colorThemes.map((theme) => {
-                  const isActive = settings.primaryColor === theme.colors[0];
-                  return (
-                    <Pressable key={theme.id} onPress={() => changeSetting('primaryColor', theme.colors[0])}>
-                      <VStack
-                        px={16}
-                        py={16}
-                        borderRadius={16}
-                        style={{
-                          backgroundColor: '#f5f5f5',
-                          borderWidth: isActive ? 3 : 0,
-                          borderColor: isActive ? '#e57373' : 'transparent',
-                        }}
-                      >
-                        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 8 }}>{theme.label}</Text>
-                        <HStack space={8}>
-                          {theme.colors.map((color, idx) => (
-                            <VStack
-                              key={idx}
-                              flex={1}
-                              py={20}
-                              borderRadius={12}
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
-                        </HStack>
-                      </VStack>
-                    </Pressable>
-                  );
-                })}
-              </VStack>
-            </VStack>
-
-          </VStack>
         </ScrollView>
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1
+  },
+  headerTitle: { fontWeight: "600" },
+  content: { flex: 1 },
+  section: { marginBottom: 28 },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12
+  },
+  optionLeft: { flexDirection: "row", alignItems: "center" },
+  iconContainer: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: "center", justifyContent: "center",
+    marginRight: 12
+  },
+  optionText: { fontWeight: "500" },
+  sectionTitle: { fontWeight: "600", marginBottom: 12 },
+  sizeRow: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 12
+  }
+});
