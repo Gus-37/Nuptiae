@@ -78,14 +78,24 @@ export default function CalendarAgendaScreen({ hideHeader = false }) {
     }
   };
 
-  // Obtener tareas para un día específico
+  // Función auxiliar para obtener la fecha en formato YYYY-MM-DD
+  const getDateString = (timestamp) => {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Obtener tareas para un día específico usando comparación de strings
   const getTasksForDate = (day, month, year) => {
-    const dateStart = new Date(year, month, day, 0, 0, 0).getTime();
-    const dateEnd = new Date(year, month, day, 23, 59, 59).getTime();
+    const targetDateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
     return tasks.filter((task) => {
       const dueDate = task.dueDate || task.createdAt;
-      return dueDate >= dateStart && dueDate <= dateEnd;
+      // Convertir timestamp a string YYYY-MM-DD para comparación
+      const taskDateString = getDateString(dueDate);
+      return taskDateString === targetDateString;
     });
   };
 
