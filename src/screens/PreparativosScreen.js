@@ -8,40 +8,58 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { databaseAgendas } from '../config/firebaseAgendas';
+import { ref, onValue } from 'firebase/database';
 
-export default function PreparativosScreen() {
+export default function PreparativosScreen({ hideHeader = false }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
+  const [preparativos, setPreparativos] = useState([]);
 
-  const [preparativos] = useState([
-    {
-      id: 1,
-      category: 'Establecer el presupuesto',
-      description: 'Definir cuánto pueden gastar para tener una idea de las opciones.',
-      color: '#f08080',
-      expanded: true,
-    },
-    {
-      id: 2,
-      category: 'Crear la lista de invitados',
-      description: 'Decidir a quién invitar antes de buscar el lugar de la celebración.',
-      color: '#f08080',
-      expanded: false,
-    },
-    {
-      id: 3,
-      category: 'Contratar proveedores clave',
-      description: 'Reservar a tiempo el catering, el fotógrafo, el videógrafo y el DJ o la banda.',
-      color: '#ff6b6b',
-      expanded: false,
-    },
-    {
-      id: 4,
-      category: 'Elegir fecha y lugar',
-      description: 'Buscar un espacio para la ceremonia y la recepción que se ajuste a su estilo y presupuesto.',
-      color: '#ff6b6b',
-      expanded: false,
-    },
-  ]);
+  // Cargar preparativos desde Firebase
+  React.useEffect(() => {
+    const preparativosRef = ref(databaseAgendas, 'agenda/preparativos');
+    const unsub = onValue(preparativosRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const items = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
+        setPreparativos(items);
+      } else {
+        // si no hay datos, podemos usar defaults locales
+        setPreparativos([
+          {
+            id: 1,
+            category: 'Establecer el presupuesto',
+            description: 'Definir cuánto pueden gastar para tener una idea de las opciones.',
+            color: '#f08080',
+            expanded: true,
+          },
+          {
+            id: 2,
+            category: 'Crear la lista de invitados',
+            description: 'Decidir a quién invitar antes de buscar el lugar de la celebración.',
+            color: '#f08080',
+            expanded: false,
+          },
+          {
+            id: 3,
+            category: 'Contratar proveedores clave',
+            description: 'Reservar a tiempo el catering, el fotógrafo, el videógrafo y el DJ o la banda.',
+            color: '#ff6b6b',
+            expanded: false,
+          },
+          {
+            id: 4,
+            category: 'Elegir fecha y lugar',
+            description: 'Buscar un espacio para la ceremonia y la recepción que se ajuste a su estilo y presupuesto.',
+            color: '#ff6b6b',
+            expanded: false,
+          },
+        ]);
+      }
+    });
+
+    return () => unsub();
+  }, []);
 
   const toggleCategory = (id) => {
     setExpandedCategory(expandedCategory === id ? null : id);
@@ -75,10 +93,12 @@ export default function PreparativosScreen() {
   return (
     <View style={styles.container}>
       {/* Encabezado */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Preparativos</Text>
-        <Text style={styles.subtitle}>Cosas a considerar para tu boda</Text>
-      </View>
+      {!hideHeader && (
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Preparativos</Text>
+          <Text style={styles.subtitle}>Cosas a considerar para tu boda</Text>
+        </View>
+      )}
 
       {/* Lista de preparativos */}
       <FlatList

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
-export default function CalendarAgendaScreen() {
+export default function CalendarAgendaScreen({ hideHeader = false }) {
   const [currentMonth, setCurrentMonth] = useState(9); // Septiembre (0-indexed)
   const [currentYear, setCurrentYear] = useState(2025);
   const [selected, setSelected] = useState({ day: null, month: currentMonth, year: currentYear });
