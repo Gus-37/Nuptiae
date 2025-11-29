@@ -9,8 +9,11 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Modal,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { push, ref, update } from 'firebase/database';
 import { databaseAgendas } from '../config/firebaseAgendas';
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -22,6 +25,7 @@ export default function AddTareaScreen({ navigation, route }) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("Importante");
   const [dueDate, setDueDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // If in edit mode, prefill fields
   useEffect(() => {
@@ -67,6 +71,22 @@ export default function AddTareaScreen({ navigation, route }) {
       };
     }, [])
   );
+
+  // Manejar cambio de fecha desde DateTimePicker
+  const handleDateChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
+
+  // Cerrar DateTimePicker en iOS
+  const handleDatePickerConfirm = () => {
+    setShowDatePicker(false);
+  };
 
   const handleAddTarea = () => {
     if (title.trim() === "") {
@@ -149,19 +169,54 @@ export default function AddTareaScreen({ navigation, route }) {
             <Text style={styles.label}>Fecha Vencimiento</Text>
             <TouchableOpacity
               style={styles.dateButton}
-              onPress={() => {
-                // Abre un selector de fecha simple
-                const newDate = new Date(dueDate);
-                newDate.setDate(newDate.getDate() + 1); // Incrementa un día para demostración
-                setDueDate(newDate);
-              }}
+              onPress={() => setShowDatePicker(true)}
             >
               <Ionicons name="calendar" size={20} color="#ff6b6b" style={{ marginRight: 10 }} />
               <Text style={styles.dateButtonText}>
                 {dueDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
               </Text>
             </TouchableOpacity>
-            <Text style={styles.dateHint}>Toca para cambiar la fecha (próximamente con calendario)</Text>
+            
+            {/* DateTimePicker */}
+            {showDatePicker && (
+              <>
+                {Platform.OS === 'ios' && (
+                  <Modal
+                    transparent
+                    animationType="slide"
+                    visible={showDatePicker}
+                    onRequestClose={handleDatePickerConfirm}
+                  >
+                    <View style={styles.datePickerModalOverlay}>
+                      <View style={styles.datePickerModalContent}>
+                        <View style={styles.datePickerHeader}>
+                          <TouchableOpacity onPress={handleDatePickerConfirm}>
+                            <Text style={styles.datePickerButton}>Listo</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <DateTimePicker
+                          value={dueDate}
+                          mode="date"
+                          display="spinner"
+                          onChange={handleDateChange}
+                          locale="es-ES"
+                        />
+                      </View>
+                    </View>
+                  </Modal>
+                )}
+                
+                {Platform.OS === 'android' && (
+                  <DateTimePicker
+                    value={dueDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    locale="es-ES"
+                  />
+                )}
+              </>
+            )}
           </View>
 
           {/* Selección de prioridad */}
@@ -418,5 +473,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#fff",
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  datePickerButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ff6b6b',
   },
 });
