@@ -26,9 +26,6 @@ import SharedAccountScreen from "../screens/SharedAccountScreen";
 // Tareas Stack Screens
 import AddTareaScreen from "../screens/AddTareaScreen";
 
-// Invitados Stack Screens
-import AddInvitadoScreen from "../screens/AddInvitadoScreen";
-
 // Agenda Stack Screens
 import AddItinerarioScreen from "../screens/AddItinerarioScreen";
 import CalendarAgendaScreen from "../screens/CalendarAgendaScreen";
@@ -101,16 +98,6 @@ export default function AppNavigator() {
       <Stack.Screen 
         name="AddTarea" 
         component={AddTareaScreen}
-        options={{ 
-          animation: 'slide_from_bottom',
-          presentation: 'modal'
-        }}
-      />
-      
-      {/* Invitados Stack Screens */}
-      <Stack.Screen 
-        name="AddInvitado" 
-        component={AddInvitadoScreen}
         options={{ 
           animation: 'slide_from_bottom',
           presentation: 'modal'

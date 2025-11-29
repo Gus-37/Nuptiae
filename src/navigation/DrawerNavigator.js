@@ -104,24 +104,12 @@ export default function DrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      initialRouteName="Home"
-      screenOptions={{
-        headerShown: false,
-        drawerActiveTintColor: "#ff6b6b",
-        drawerInactiveTintColor: "#333",
-        drawerStyle: {
-          backgroundColor: "#fff",
-          width: 280,
-        },
-        swipeEnabled: true,
-        swipeEdgeWidth: 50,
-      }}
+      screenOptions={{ headerShown: false }}
     >
-      {/* Main Screens - Accessible from Drawer */}
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ 
+        options={{
           title: "Inicio",
           drawerLabel: "Inicio"
         }}
@@ -129,7 +117,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ 
+        options={{
           title: "Perfil",
           drawerLabel: "Perfil"
         }}
@@ -137,7 +125,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Invitados"
         component={InvitadosScreen}
-        options={{ 
+        options={{
           title: "Invitados",
           drawerLabel: "Invitados"
         }}
@@ -145,7 +133,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Promociones"
         component={PromocionesScreen}
-        options={{ 
+        options={{
           title: "Promociones",
           drawerLabel: "Promos"
         }}
@@ -153,7 +141,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Providers"
         component={ProvidersScreen}
-        options={{ 
+        options={{
           title: "Proveedores",
           drawerLabel: "Proveedores"
         }}
@@ -161,17 +149,17 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Forms"
         component={FormsScreen}
-        options={{ 
+        options={{
           title: "Comunidad",
           drawerLabel: "Comunidad"
         }}
       />
-      
+
       {/* Secondary Screens - Not in drawer menu but accessible */}
       <Drawer.Screen
         name="Agenda"
         component={AgendaScreen}
-        options={{ 
+        options={{
           title: "Agenda",
           drawerItemStyle: { display: 'none' }
         }}
@@ -179,7 +167,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Costos"
         component={CostosScreen}
-        options={{ 
+        options={{
           title: "Costos",
           drawerItemStyle: { display: 'none' }
         }}
@@ -187,7 +175,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Cuentas"
         component={CuentasScreen}
-        options={{ 
+        options={{
           title: "Cuentas",
           drawerItemStyle: { display: 'none' }
         }}
@@ -195,7 +183,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Tareas"
         component={TareasScreen}
-        options={{ 
+        options={{
           title: "Tareas",
           drawerItemStyle: { display: 'none' }
         }}
@@ -203,7 +191,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Roles"
         component={RolesScreen}
-        options={{ 
+        options={{
           title: "Roles",
           drawerItemStyle: { display: 'none' }
         }}
@@ -211,7 +199,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Pantalla"
         component={PantallaScreen}
-        options={{ 
+        options={{
           title: "Pantalla",
           drawerItemStyle: { display: 'none' }
         }}
@@ -219,7 +207,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Idioma"
         component={IdiomaScreen}
-        options={{ 
+        options={{
           title: "Idioma",
           drawerItemStyle: { display: 'none' }
         }}
