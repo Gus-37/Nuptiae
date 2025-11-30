@@ -11,10 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../config/firebaseConfig';
-import { getUserData } from '../services/authService';
-import * as budgetService from '../services/budgetService';
 import { ArrowLeft, Heart, Share2, MapPin, Phone, Mail, Star } from "lucide-react-native";
 
 const { width } = Dimensions.get('window');
@@ -22,7 +18,6 @@ const { width } = Dimensions.get('window');
 export default function ProductDetailScreen({ route, navigation }) {
   const { product, category } = route.params;
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const handleFavorite = () => {
     setIsFavorite(!isFavorite);
@@ -59,65 +54,20 @@ export default function ProductDetailScreen({ route, navigation }) {
   };
 
   const handleReserve = async () => {
-    if (isSaving) return;
-    setIsSaving(true);
-    try {
-      // Build item to store in Costos (presupuestos/items)
-      const getRandomArrival = () => {
-        const daysAhead = Math.floor(Math.random() * 14) + 1; // 1..14 days
-        const d = new Date();
-        d.setDate(d.getDate() + daysAhead);
-        const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-        return `Llegará el ${d.getDate()} de ${months[d.getMonth()]}`;
-      };
+    // Build an item payload compatible with CostosScreen expectations
+    const item = {
+      name: product.name,
+      detail: product.description || `${product.name}`,
+      price: typeof product.price === 'number' ? `$${product.price}` : product.price || '$0',
+      image: product.image || null,
+      createdAt: new Date().toISOString(),
+      // mark initially as in carrito so CostosScreen shows it in the cart
+      status: 'carrito'
+    };
 
-      const arrival = getRandomArrival();
-      const item = {
-        name: product.name || 'Producto',
-        detail: product.description || product.shortDescription || '',
-        price: product.price || '$0.00',
-        provider: product.provider || 'Proveedor',
-        status: `Reservado - ${arrival}`,
-        arrivalAt: new Date(Date.now() + (Math.floor(Math.random()*14)+1) * 24 * 60 * 60 * 1000).toISOString(),
-        createdAt: new Date().toISOString(),
-      };
-
-      // Get current auth state once
-      const user = await new Promise((resolve) => {
-        const unsub = onAuthStateChanged(auth, (u) => {
-          unsub && unsub();
-          resolve(u);
-        });
-        // fallback timeout in case onAuthStateChanged doesn't fire (unlikely)
-        setTimeout(() => resolve(auth.currentUser || null), 1000);
-      });
-
-      if (!user) {
-        Alert.alert('Inicia sesión', 'Debes iniciar sesión para guardar la reservación en tu cuenta. Se añadirá localmente y podrás guardarlo después.');
-        // Navigate to Costos carrito anyway (local add will not persist)
-        navigation.navigate('Costos', { tab: 'carrito' });
-        setIsSaving(false);
-        return;
-      }
-
-      // Check if user belongs to a shared account
-      const ud = await getUserData(user.uid);
-      const shared = ud && ud.data && ud.data.sharedAccountCode ? ud.data.sharedAccountCode : null;
-
-      if (shared) {
-        await budgetService.addItemToAccount(shared, item);
-      } else {
-        await budgetService.addItem(user.uid, item);
-      }
-
-      // Navigate to Costos and open carrito tab
-      navigation.navigate('Costos', { tab: 'carrito' });
-    } catch (err) {
-      console.error('Error reservando producto:', err);
-      Alert.alert('Error', 'No se pudo reservar el producto. Intenta de nuevo.');
-    } finally {
-      setIsSaving(false);
-    }
+    // Navigate to Costos screen inside the main Drawer navigator (HomeDrawer)
+    // use nested navigation: navigate to HomeDrawer -> Costos with params
+    navigation.navigate('HomeDrawer', { screen: 'Costos', params: { tab: 'carrito', newItem: item } });
   };
 
   return (
@@ -232,12 +182,8 @@ export default function ProductDetailScreen({ route, navigation }) {
           <Phone size={20} color="#fff" />
           <Text style={styles.contactButtonText}>Contactar</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.reserveButton, isSaving && { opacity: 0.7 }]}
-          onPress={handleReserve}
-          disabled={isSaving}
-        >
-          <Text style={styles.reserveButtonText}>{isSaving ? 'Reservando...' : 'Reservar'}</Text>
+        <TouchableOpacity style={styles.reserveButton} onPress={handleReserve}>
+          <Text style={styles.reserveButtonText}>Reservar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

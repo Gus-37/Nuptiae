@@ -74,9 +74,9 @@ export const removeItem = async (uid, id) => {
   }
 };
 
-export const updateItem = async (uid, id, data) => {
+export const updateItem = async (uid, id, fields) => {
   try {
-    await update(ref(database, `users/${uid}/presupuestos/items/${id}`), data);
+    await update(ref(database, `users/${uid}/presupuestos/items/${id}`), fields);
     return { success: true };
   } catch (error) {
     console.error('updateItem error', error);
@@ -195,9 +195,9 @@ export const removeItemFromAccount = async (accountCode, id) => {
   }
 };
 
-export const updateItemForAccount = async (accountCode, id, data) => {
+export const updateItemForAccount = async (accountCode, id, fields) => {
   try {
-    await update(ref(database, `sharedAccounts/${accountCode}/costos/items/${id}`), data);
+    await update(ref(database, `sharedAccounts/${accountCode}/costos/items/${id}`), fields);
     return { success: true };
   } catch (error) {
     console.error('updateItemForAccount error', error);

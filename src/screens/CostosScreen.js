@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   Animated,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MoreVertical, ShoppingCart, DollarSign, List, ArrowLeft, Calendar, Users, Home, Edit, Bold, Plus } from "lucide-react-native";
@@ -19,7 +20,7 @@ import { getUserData } from '../services/authService';
 import * as budgetService from '../services/budgetService';
 
 export default function CostosScreen({ navigation, route }) {
-  const [selectedTab, setSelectedTab] = useState("compras");
+  const [selectedTab, setSelectedTab] = useState("carrito");
   const [menuVisible, setMenuVisible] = useState(false);
   const [budgetEditMode, setBudgetEditMode] = useState(false);
   // Presupuesto inicial sin definir
@@ -32,6 +33,7 @@ export default function CostosScreen({ navigation, route }) {
   const [newBudgetPrice, setNewBudgetPrice] = useState("");
   const [editFocusActive, setEditFocusActive] = useState(false);
   const [items, setItems] = useState([]);
+  const [pendingNewItems, setPendingNewItems] = useState([]);
 
   const [budgetItems, setBudgetItems] = useState([]);
   const [uid, setUid] = useState(null);
@@ -90,8 +92,16 @@ export default function CostosScreen({ navigation, route }) {
   };
 
   // Función para parsear valores de moneda (ej: "$10,000" -> 10000)
+  // Robusta: acepta strings o numbers, devuelve 0 para valores inválidos
   const parsePrice = (priceStr) => {
-    return parseFloat(priceStr.replace(/[^0-9.-]/g, ''));
+    if (priceStr === null || priceStr === undefined) return 0;
+    try {
+      const s = typeof priceStr === 'number' ? String(priceStr) : priceStr;
+      const n = parseFloat(String(s).replace(/[^0-9.-]/g, ''));
+      return isNaN(n) ? 0 : n;
+    } catch (e) {
+      return 0;
+    }
   };
 
   // Función para formatear números como moneda
@@ -99,18 +109,41 @@ export default function CostosScreen({ navigation, route }) {
     return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  // Formatea ISO date a cadena legible con fecha y hora
+  const formatDate = (iso) => {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString();
+    } catch (e) {
+      return iso;
+    }
+  };
+
   // Calcular presupuesto mín y máx (manejar caso sin definir)
   const maxBudget = budgetMax ? parsePrice(`$${budgetMax}`) : NaN;
   const minBudget = budgetMin ? parsePrice(`$${budgetMin}`) : NaN;
 
   // Calcular gasto total por fuentes
-  const cartTotal = items.reduce((sum, item) => sum + parsePrice(item.price), 0);
+  // cartTotal: solo items con status 'carrito' (los que están en el carrito actualmente)
+  const cartItems = items.filter(i => (i.status || '').toLowerCase().includes('carrito'));
+  const cartTotal = cartItems.reduce((sum, item) => sum + parsePrice(item.price), 0);
+  
+  // comprasTotal: items en compras (en proceso y entregados) - todos MENOS los que están en carrito
+  const comprasItems = items.filter(i => !(i.status || '').toLowerCase().includes('carrito'));
+  const comprasTotal = comprasItems.reduce((sum, item) => sum + parsePrice(item.price), 0);
+  
+  // budgetTotal: items de presupuesto planificados
   const budgetTotal = budgetItems.reduce((sum, b) => sum + parsePrice(b.price), 0);
-  // totalSpent = suma de ambos (para la lógica de presupuesto general)
-  const totalSpent = cartTotal + budgetTotal;
+  
+  // totalSpent: carrito + compras (en proceso/entregadas) + presupuesto planificado
+  const totalSpent = cartTotal + comprasTotal + budgetTotal;
 
-  // Calcular presupuesto disponible (máximo menos gasto)
+  // Calcular presupuesto disponible (máximo menos gasto total)
   const budgetRemaining = maxBudget - totalSpent;
+  
+  // Presupuesto disponible sin contar carrito (para mostrar en tab compras)
+  const budgetRemainingWithoutCart = maxBudget - (comprasTotal + budgetTotal);
 
   // Determinar estado del presupuesto
   const getBudgetStatus = () => {
@@ -125,6 +158,57 @@ export default function CostosScreen({ navigation, route }) {
       return { status: 'warning', message: 'Te estás acercando a tu límite', color: '#ff9800' };
     } else {
       return { status: 'ok', message: 'Aún tienes presupuesto disponible', color: '#4caf50' };
+    }
+  };
+
+  // Función para calcular estado del presupuesto en la tab presupuesto (sin contar carrito)
+  const getBudgetStatusWithoutCart = () => {
+    if (!budgetMax) {
+      return { status: 'unset', message: '¡Define el Presupuesto de tu Boda y Controla Cada Gasto!', color: '#666' };
+    }
+    const spentWithoutCart = comprasTotal + budgetTotal; // Solo compras y presupuesto, sin carrito
+    const percentUsed = (spentWithoutCart / maxBudget) * 100;
+    if (spentWithoutCart > maxBudget) {
+      return { status: 'exceeded', message: 'Has excedido tu presupuesto', color: '#ff4444' };
+    } else if (percentUsed >= 80) {
+      return { status: 'warning', message: 'Te estás acercando a tu límite', color: '#ff9800' };
+    } else {
+      return { status: 'ok', message: 'Aún tienes presupuesto disponible', color: '#4caf50' };
+    }
+  };
+
+  // Función para calcular estado del presupuesto en la tab carrito (incluyendo items en carrito)
+  const getCartBudgetStatus = () => {
+    if (!budgetMax) {
+      return { status: 'unset', color: '#666', message: '¡Define el Presupuesto de tu Boda y Controla Cada Gasto!' };
+    }
+    
+    // Pre-cálculo: sumar lo ya gastado en Compras (comprasTotal), lo planificado en Presupuesto (budgetTotal)
+    // y los items actualmente en el carrito (cartTotal)
+    const totalWithCart = comprasTotal + budgetTotal + cartTotal;
+    const remaining = maxBudget - totalWithCart;
+    
+    if (remaining < 0) {
+      // Excedido
+      return { 
+        status: 'exceeded', 
+        color: '#ff4444', 
+        message: `Te excediste por ${formatPrice(Math.abs(remaining))}` 
+      };
+    } else if (remaining <= maxBudget * 0.2) { // Menos del 20% disponible
+      // Amarillo
+      return { 
+        status: 'warning', 
+        color: '#ff9800', 
+        message: `Casi alcanzas tu presupuesto: Te quedan ${formatPrice(remaining)}` 
+      };
+    } else {
+      // Verde
+      return { 
+        status: 'ok', 
+        color: '#4caf50', 
+        message: `Dentro del presupuesto: Te quedan ${formatPrice(remaining)}` 
+      };
     }
   };
 
@@ -169,12 +253,46 @@ export default function CostosScreen({ navigation, route }) {
     };
   }, [selectedTab, budgetStatus.status, editFocusActive]);
 
-  // Recibir parámetros de navegación y establecer el tab correcto
+  // Handle newItem from navigation (when product is reserved)
   useEffect(() => {
-    if (route.params?.tab) {
-      setSelectedTab(route.params.tab);
+    // If a newItem was passed via navigation, queue it for adding
+    if (route.params?.newItem) {
+      const routeItem = route.params.newItem;
+      // push to pending items to show immediately
+      setItems((prev) => [...prev, { id: `local-${Date.now()}`, ...routeItem }]);
+      setPendingNewItems((prev) => [...prev, routeItem]);
+      // clear param so repeated navigations don't re-add
+      try {
+        navigation.setParams({ newItem: undefined });
+      } catch (err) {
+        // ignore if navigation.setParams not available
+      }
+      setSelectedTab('carrito');
     }
-  }, [route.params?.tab]);
+  }, [route.params?.newItem]);
+
+  // When auth state (uid/sharedCode) becomes available, flush pendingNewItems to DB
+  useEffect(() => {
+    if (!pendingNewItems || pendingNewItems.length === 0) return;
+
+    (async () => {
+      const toFlush = [...pendingNewItems];
+      for (const itm of toFlush) {
+        try {
+          if (sharedCode) {
+            await budgetService.addItemToAccount(sharedCode, itm);
+          } else if (uid) {
+            await budgetService.addItem(uid, itm);
+          } else {
+            // no auth, keep local only
+          }
+        } catch (err) {
+          console.error('Error flushing pending item', err);
+        }
+      }
+      setPendingNewItems([]);
+    })();
+  }, [uid, sharedCode]);
 
   const subscriptionsRef = useRef([]);
 
@@ -263,13 +381,15 @@ export default function CostosScreen({ navigation, route }) {
   // Filtrar items para la vista de Compras según el sub-tab seleccionado
   const comprasFiltered = items.filter((item) => {
     const s = (item.status || '').toLowerCase();
+    // Excluir items en carrito de la vista de compras
+    if (s.includes('carrito')) {
+      return false;
+    }
     if (comprasTab === 'entregados') {
       // Tratar como entregados los que contienen 'llegó' o 'entregado'
       return s.includes('llegó') || s.includes('entregado');
     }
-    // Excluir items reservados de la vista 'en proceso'
-    if (s.includes('reserv')) return false;
-    // En proceso: resto de items
+    // En proceso: resto de items (excluyendo carrito)
     return !(s.includes('llegó') || s.includes('entregado'));
   });
 
@@ -304,12 +424,12 @@ export default function CostosScreen({ navigation, route }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.headerButton} onPress={() => { if (navigation && navigation.canGoBack && navigation.canGoBack()) navigation.goBack(); }}>
-            <ArrowLeft size={22} color="#333" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+            <ArrowLeft size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Costos y presupuesto</Text>
-          <TouchableOpacity style={styles.headerButton} onPress={() => setMenuVisible(true)}>
-            <MoreVertical size={22} color="#333" />
+          <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.headerButton}>
+            <MoreVertical size={24} color="#333" />
           </TouchableOpacity>
         </View>
 
@@ -333,7 +453,7 @@ export default function CostosScreen({ navigation, route }) {
                   setMenuVisible(false);
                 }}
               >
-                <ShoppingCart size={20} color="#333" />
+                <List size={20} color="#333" />
                 <Text style={styles.menuItemText}>Compras</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -343,7 +463,7 @@ export default function CostosScreen({ navigation, route }) {
                   setMenuVisible(false);
                 }}
               >
-                <List size={20} color="#333" />
+                <ShoppingCart size={20} color="#333" />
                 <Text style={styles.menuItemText}>Carrito</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -368,13 +488,13 @@ export default function CostosScreen({ navigation, route }) {
             </Text>
 
             {selectedTab === "presupuesto" ? (
+              // Layout para presupuesto
               <>
-                <Text style={styles.totalLabel}>Indica cuánto quieres gastar en total y quién se encargará de cada partida</Text>
+                <Text style={styles.totalLabel}>Define tu presupuesto total y agrega tus gastos previos con responsable y monto para incluirlos en el cálculo</Text>
                 <View style={styles.budgetHeaderRange}>
                   {budgetEditMode ? (
                     <View style={styles.budgetEditContainer}>
-                      <Text style={styles.budgetEditLabel}>$0,000</Text>
-                      <Text style={styles.budgetEditLabel}> - $</Text>
+                      <Text style={styles.budgetEditLabel}>$</Text>
                       <TextInput
                         style={styles.budgetEditInput}
                         value={budgetMax}
@@ -397,7 +517,7 @@ export default function CostosScreen({ navigation, route }) {
                     </View>
                   ) : (
                     <View style={styles.budgetHeaderContainer}>
-                      <Text style={styles.budgetHeaderText}>{budgetMax ? `$${budgetMin || '0,000'} - $${budgetMax}` : 'Sin definir'}</Text>
+                      <Text style={styles.budgetHeaderText}>{budgetMax ? `${budgetMin || ''} $${budgetMax}` : 'Sin definir'}</Text>
                       <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                         <Animated.View style={[styles.editGlow, { opacity: editGlowOpacity, transform: [{ scale: editGlowScale }] }]} />
                         <Animated.View style={{ transform: [{ scale: editPulse }] }}>
@@ -408,9 +528,7 @@ export default function CostosScreen({ navigation, route }) {
                       </View>
                     </View>
                   )}
-
                 </View>
-
                 {budgetItems.map((item) => (
                   <View key={item.id} style={styles.budgetItemCard}>
                     <TouchableOpacity
@@ -429,6 +547,7 @@ export default function CostosScreen({ navigation, route }) {
                 ))}
               </>
             ) : selectedTab === "compras" ? (
+              // Layout para Compras (vista tipo lista con sub-tabs)
               <>
                 <View style={styles.comprasTabs}>
                   <TouchableOpacity
@@ -445,6 +564,7 @@ export default function CostosScreen({ navigation, route }) {
                   </TouchableOpacity>
                 </View>
                 {comprasTab === 'entregados' ? (
+                  // Mostrar entregados agrupados por mes
                   Object.entries(entregadosByMonth).map(([month, monthItems]) => (
                     <View key={month}>
                       <Text style={styles.monthHeader}>{month}</Text>
@@ -457,12 +577,17 @@ export default function CostosScreen({ navigation, route }) {
                             <Text style={styles.purchaseTitle}>{item.name}</Text>
                             <Text style={styles.purchaseSubtitle}>{item.detail}</Text>
                             <Text style={[styles.purchaseStatus, { color: '#4caf50' }]}>{item.status}</Text>
+                            { (item.purchasedAt || item.updatedAt) && (
+                              <Text style={styles.purchaseDate}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
+                            ) }
                           </View>
+                          <Text style={styles.purchasePrice}>{item.price}</Text>
                         </View>
                       ))}
                     </View>
                   ))
                 ) : (
+                  // Mostrar en proceso sin agrupar
                   comprasFiltered.map((item) => (
                     <View key={item.id} style={styles.purchaseCard}>
                       <View style={styles.purchaseLeft}>
@@ -472,36 +597,46 @@ export default function CostosScreen({ navigation, route }) {
                         <Text style={styles.purchaseTitle}>{item.name}</Text>
                         <Text style={styles.purchaseSubtitle}>{item.detail}</Text>
                         <Text style={[styles.purchaseStatus, { color: '#ff9800' }]}>{item.status}</Text>
+                        { (item.purchasedAt || item.updatedAt) && (
+                          <Text style={styles.purchaseDate}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
+                        ) }
                       </View>
+                      <Text style={styles.purchasePrice}>{item.price}</Text>
                     </View>
                   ))
                 )}
               </>
             ) : (
-              items.map((item) => (
-                <View key={item.id} style={styles.itemCard}>
-                  {selectedTab !== "compras" && (
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => removeItem(item.id)}
-                      accessibilityLabel={`Eliminar ${item.name}`}
-                    >
-                      <Text style={styles.removeButtonText}>×</Text>
-                    </TouchableOpacity>
-                  )}
-                  <View style={styles.itemImage} />
-                  <View style={styles.itemContent}>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemDetail}>{item.detail}</Text>
-                    {selectedTab === "carrito" && (
-                      <Text style={styles.itemPriceInline}>{item.price}</Text>
+              // Layout para Carrito (lista de items con detalle y precio)
+              (() => {
+                const displayedItems = selectedTab === 'carrito'
+                  ? items.filter(i => (i.status || '').toLowerCase().includes('carrito'))
+                  : items;
+                return displayedItems.map((item) => (
+                  <View key={item.id} style={styles.itemCard}>
+                    {selectedTab !== "compras" && (
+                      <TouchableOpacity
+                        style={styles.removeButton}
+                        onPress={() => removeItem(item.id)}
+                        accessibilityLabel={`Eliminar ${item.name}`}
+                      >
+                        <Text style={styles.removeButtonText}>×</Text>
+                      </TouchableOpacity>
+                    )}
+                    <View style={styles.itemImage} />
+                    <View style={styles.itemContent}>
+                      <Text style={styles.itemName}>{item.name}</Text>
+                      <Text style={styles.itemDetail}>{item.detail}</Text>
+                      {selectedTab === "carrito" && (
+                        <Text style={styles.itemPriceInline}>{item.price}</Text>
+                      )}
+                    </View>
+                    {selectedTab !== "carrito" && (
+                      <Text style={styles.itemPrice}>{item.price}</Text>
                     )}
                   </View>
-                  {selectedTab !== "carrito" && (
-                    <Text style={styles.itemPrice}>{item.price}</Text>
-                  )}
-                </View>
-              ))
+                ));
+              })()
             )}
 
             {/* total container moved outside to be fixed */}
@@ -514,61 +649,129 @@ export default function CostosScreen({ navigation, route }) {
             (() => {
               const isBudgetUnset = !budgetMax || isNaN(maxBudget);
               if (selectedTab === "carrito") {
+                const cartBudgetStatus = getCartBudgetStatus();
                 return (
                   <>
                     <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={[styles.totalAmount, { color: budgetStatus.color }]}>{formatPrice(cartTotal)}</Text>
-                    {budgetStatus.status === 'unset' ? (
+                    <Text style={[styles.totalAmount, { color: cartBudgetStatus.color }]}>{formatPrice(cartTotal)}</Text>
+                    {cartBudgetStatus.status === 'unset' ? (
                       <TouchableOpacity onPress={() => setSelectedTab('presupuesto')}>
-                        <Text style={[styles.budgetStatusMessage, { color: '#ff6b6b', marginTop: 8 }, styles.budgetMessageCentered]}>{budgetStatus.message}</Text>
+                        <Text style={[styles.budgetStatusMessage, { color: '#ff6b6b', marginTop: 8 }, styles.budgetMessageCentered]}>{cartBudgetStatus.message}</Text>
                       </TouchableOpacity>
                     ) : (
-                      <Text style={[styles.budgetStatusMessage, { color: budgetStatus.color, marginTop: 8 }]}>{budgetStatus.message}</Text>
-                    )}
-                    {!isBudgetUnset && (
-                      <Text style={[styles.budgetRangeInfo, { color: '#000' }]}>Disponible: ${budgetMax} | Gastado: {formatPrice(totalSpent)}</Text>
+                      <Text style={[styles.budgetStatusMessage, { color: cartBudgetStatus.color, marginTop: 8 }, styles.budgetMessageCentered]}>{cartBudgetStatus.message}</Text>
                     )}
                     {selectedTab === "carrito" && (
-                            <TouchableOpacity
-                              style={styles.finalizeButton}
-                              onPress={async () => {
-                                // Marcar items reservados como 'En proceso' (visible en Compras -> En proceso)
-                                const reserved = items.filter(i => (i.status || '').toLowerCase().includes('reserv'));
-                                if (!reserved.length) return;
-                                try {
-                                  if (!uid && !sharedCode) {
-                                    // local fallback
-                                    setItems(prev => prev.map(i => ((i.status||'').toLowerCase().includes('reserv')) ? { ...i, status: 'En proceso' } : i));
-                                  } else {
-                                    for (const it of reserved) {
-                                      if (sharedCode) {
-                                        await budgetService.updateItemForAccount(sharedCode, it.id, { status: 'En proceso' });
-                                      } else {
-                                        await budgetService.updateItem(uid, it.id, { status: 'En proceso' });
-                                      }
-                                    }
+                      <TouchableOpacity
+                        style={styles.finalizeButton}
+                        onPress={async () => {
+                          // Finalizar compra: mover items con status 'carrito' a compras/en proceso
+                          const cartItems = items.filter(i => (i.status || '').toLowerCase().includes('carrito'));
+                          if (!cartItems.length) {
+                            Alert.alert('Carrito vacío', 'No hay productos en el carrito.');
+                            return;
+                          }
+
+                          // Calcular nuevo total si se completa la compra
+                          // Use meta.totalSpent when available; otherwise fallback to comprasTotal + budgetTotal
+                          const metaSpent = meta && meta.totalSpent ? parsePrice(`$${meta.totalSpent}`) : null;
+                          const baselineSpent = metaSpent !== null ? metaSpent : (comprasTotal + budgetTotal);
+                          const newTotalSpent = baselineSpent + cartTotal;
+                          const willExceedBudget = !isNaN(maxBudget) && newTotalSpent > maxBudget;
+
+                          // Debug logs to diagnose over-budget logic
+                          try {
+                            console.log('FINALIZE CHECK ->', {
+                              cartTotal,
+                              comprasTotal,
+                              budgetTotal,
+                              metaSpent,
+                              baselineSpent,
+                              newTotalSpent,
+                              maxBudget,
+                              willExceedBudget,
+                              meta
+                            });
+                          } catch (e) {
+                            // ignore
+                          }
+
+                          // Helper function para completar la compra
+                          const completePurchase = async () => {
+                            // For each item set a random arrival in X days, record purchase timestamp and update DB (or local state)
+                            for (const it of cartItems) {
+                              const days = Math.floor(Math.random() * 12) + 3; // 3-14 days
+                              const newStatus = `Llegará en ${days} días`;
+                              const updatedAt = new Date().toISOString();
+                              const purchasedAt = new Date().toISOString();
+                              try {
+                                if (sharedCode) {
+                                  if (it.id && !String(it.id).startsWith('local-')) {
+                                    await budgetService.updateItemForAccount(sharedCode, it.id, { status: newStatus, updatedAt, purchasedAt });
                                   }
-                                } catch (err) {
-                                  console.error('Error finalizing reserved items', err);
+                                  setItems(prev => prev.map(p => p.id === it.id ? { ...p, status: newStatus, updatedAt, purchasedAt } : p));
+                                } else if (uid) {
+                                  if (it.id && !String(it.id).startsWith('local-')) {
+                                    await budgetService.updateItem(uid, it.id, { status: newStatus, updatedAt, purchasedAt });
+                                  }
+                                  setItems(prev => prev.map(p => p.id === it.id ? { ...p, status: newStatus, updatedAt, purchasedAt } : p));
+                                } else {
+                                  setItems(prev => prev.map(p => p.id === it.id ? { ...p, status: newStatus, updatedAt, purchasedAt } : p));
                                 }
-                              }}
-                            >
-                              <Text style={styles.finalizeButtonText}>Finalizar compra</Text>
-                            </TouchableOpacity>
+                              } catch (err) {
+                                console.error('Error updating item status', err);
+                              }
+                            }
+
+                            // Update meta with total spent (save to DB)
+                            try {
+                              const updatedMeta = { totalSpent: String(newTotalSpent), updatedAt: new Date().toISOString() };
+                              if (sharedCode) {
+                                await budgetService.updateMetaForAccount(sharedCode, updatedMeta);
+                              } else if (uid) {
+                                await budgetService.updateMeta(uid, updatedMeta);
+                              }
+                            } catch (err) {
+                              console.error('Error updating totalSpent meta', err);
+                            }
+
+                            // Show confirmation and switch to compras tab
+                            Alert.alert('¡Compra realizada exitosamente!', '', [{ text: 'OK', onPress: () => { setSelectedTab('compras'); setComprasTab('enProceso'); } }]);
+                          };
+
+                          // Si va a exceder presupuesto, mostrar alerta de confirmación
+                          if (willExceedBudget) {
+                            Alert.alert(
+                              'Presupuesto será sobrepasado',
+                              `Tu presupuesto es de ${formatPrice(maxBudget)} pero esta compra lo aumentará a ${formatPrice(newTotalSpent)}.\n\n¿Deseas continuar?`,
+                              [
+                                { text: 'Cancelar', onPress: () => {}, style: 'cancel' },
+                                { text: 'Sí, continuar', onPress: () => completePurchase() }
+                              ]
+                            );
+                          } else {
+                            // Si no excede, completar compra directamente
+                            completePurchase();
+                          }
+                        }}
+                      >
+                        <Text style={styles.finalizeButtonText}>Finalizar compra</Text>
+                      </TouchableOpacity>
                     )}
                   </>
                 );
               }
 
               if (selectedTab === "presupuesto") {
+                const budgetStatusNoCart = getBudgetStatusWithoutCart();
                 return (
                   <>
-                    {budgetStatus.status === 'unset' ? (
+                    {budgetStatusNoCart.status === 'unset' ? (
                       <TouchableOpacity onPress={() => setEditFocusActive(true)}>
-                        <Text style={[styles.budgetStatusMessage, { color: budgetStatus.color }, styles.budgetMessageCentered]}>{budgetStatus.message}</Text>
+                        <Text style={[styles.budgetStatusMessage, { color: budgetStatusNoCart.color }, styles.budgetMessageCentered]}>{budgetStatusNoCart.message}</Text>
                       </TouchableOpacity>
                     ) : (
-                      <Text style={[styles.budgetStatusMessage, { color: budgetStatus.color }]}>{budgetStatus.message}</Text>
+                      <Text style={[styles.budgetStatusMessage, { color: budgetStatusNoCart.color }]}>{budgetStatusNoCart.message}</Text>
                     )}
                   </>
                 );
@@ -592,7 +795,7 @@ export default function CostosScreen({ navigation, route }) {
               return (
                 <>
                   <Text style={styles.totalLabel}>Presupuesto disponible</Text>
-                  <Text style={styles.totalAmount}>{formatPrice(budgetRemaining)}</Text>
+                  <Text style={styles.totalAmount}>{formatPrice(budgetRemainingWithoutCart)}</Text>
                 </>
               );
             })()
@@ -667,7 +870,7 @@ export default function CostosScreen({ navigation, route }) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
-            onPress={() => navigation.navigate("Costos", { tab: "compras" })}
+            onPress={() => navigation.navigate("Costos", { tab: "carrito" })}
           >
             <ShoppingCart size={24} color="#ff6b6b" />
           </TouchableOpacity>
@@ -696,10 +899,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
@@ -796,6 +1005,8 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
+    alignContent: "center",
+    textAlign: "center",
     color: "#666",
     marginBottom: 8,
   },
@@ -849,12 +1060,6 @@ const styles = StyleSheet.create({
   },
   navIcon: {
     fontSize: 24,
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   removeButton: {
     position: "absolute",
@@ -1041,6 +1246,17 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 6,
   },
+  purchasePrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ff6b6b',
+    marginLeft: 8,
+  },
+  purchaseDate: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 6,
+  },
   monthHeader: {
     fontSize: 14,
     fontWeight: '600',
@@ -1127,14 +1343,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-start",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
   },
   menuContainer: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    position: 'absolute',
-    top: 8,
-    right: 8,
+    marginTop: 12,
+    marginRight: 12,
     paddingVertical: 8,
     minWidth: 200,
     shadowColor: "#000",
