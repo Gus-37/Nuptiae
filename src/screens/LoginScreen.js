@@ -87,14 +87,14 @@ export default function LoginScreen() {
         <View style={styles.dividerLine} />
       </View>
 
-      <TouchableOpacity style={styles.googleButton}>
-        <Mail size={20} color="#333" style={styles.socialIcon} />
-        <Text style={styles.socialButtonText}>Continúa con Google</Text>
+      <TouchableOpacity style={styles.googleButton} disabled>
+        <Mail size={20} color="#999" style={styles.socialIcon} />
+        <Text style={[styles.socialButtonText, { color: '#999' }]}>Continúa con Google (Próximamente)</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.appleButton}>
-        <Apple size={20} color="#333" style={styles.socialIcon} />
-        <Text style={styles.appleButtonText}>Continúa con Apple</Text>
+      <TouchableOpacity style={styles.appleButton} disabled>
+        <Apple size={20} color="#999" style={styles.socialIcon} />
+        <Text style={[styles.appleButtonText, { color: '#999' }]}>Continúa con Apple (Próximamente)</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
