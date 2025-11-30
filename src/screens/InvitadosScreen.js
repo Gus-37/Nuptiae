@@ -15,9 +15,11 @@ import { ArrowLeft, Home, ShoppingCart, Calendar, Users, Plus, X, ChevronRight }
 import { useUISettings } from "../context/UISettingsContext";
 import { ref, push, onValue, remove } from "firebase/database";
 import { invitadosDatabase, auth } from "../config/firebaseConfig";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function InvitadosScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const [guests, setGuests] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newGuest, setNewGuest] = useState({ name: "", role: "" });
@@ -50,14 +52,14 @@ export default function InvitadosScreen({ navigation }) {
 
   const addGuest = async () => {
     if (!newGuest.name.trim() || !newGuest.role.trim()) {
-      Alert.alert("Error", "Por favor completa todos los campos");
+      Alert.alert(t("error"), t("completeFields"));
       return;
     }
 
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) {
-        Alert.alert("Error", "Debes iniciar sesión");
+        Alert.alert(t("error"), t("mustLogin"));
         return;
       }
 
@@ -70,10 +72,10 @@ export default function InvitadosScreen({ navigation }) {
       
       setNewGuest({ name: "", role: "" });
       setModalVisible(false);
-      Alert.alert("Éxito", "Invitado agregado correctamente");
+      Alert.alert(t("success"), t("guestAdded"));
     } catch (error) {
       console.error("Error adding guest:", error);
-      Alert.alert("Error", `No se pudo agregar el invitado: ${error.message}`);
+      Alert.alert(t("error"), t("guestAddError", error.message));
     }
   };
 
@@ -92,7 +94,10 @@ export default function InvitadosScreen({ navigation }) {
           }}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Invitados</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}
+          >
+            {t("guests")}
+          </Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -100,7 +105,7 @@ export default function InvitadosScreen({ navigation }) {
           <View style={styles.section}>
             {guests.length === 0 ? (
               <Text style={[styles.emptyText, { color: colors.muted, fontSize: 14 * fontScale }]}>
-                No hay invitados. Presiona + para agregar uno.
+                {t("noGuests")}
               </Text>
             ) : (
               guests.map((guest) => (
@@ -137,14 +142,18 @@ export default function InvitadosScreen({ navigation }) {
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
               <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Agregar Invitado</Text>
+                <Text style={[styles.modalTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+                  {t("addGuest")}
+                </Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
                   <X size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: colors.text, fontSize: 14 * fontScale }]}>Nombre</Text>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: 14 * fontScale }]}>
+                  {t("guestName")}
+                </Text>
                 <TextInput
                   style={[styles.input, { 
                     backgroundColor: colors.bg, 
@@ -152,7 +161,7 @@ export default function InvitadosScreen({ navigation }) {
                     borderColor: colors.border,
                     fontSize: 16 * fontScale
                   }]}
-                  placeholder="Nombre del invitado"
+                  placeholder={t("guestNamePlaceholder")}
                   placeholderTextColor={colors.muted}
                   value={newGuest.name}
                   onChangeText={(text) => setNewGuest({ ...newGuest, name: text })}
@@ -160,7 +169,9 @@ export default function InvitadosScreen({ navigation }) {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: colors.text, fontSize: 14 * fontScale }]}>Rol</Text>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: 14 * fontScale }]}>
+                  {t("guestRole")}
+                </Text>
                 <TextInput
                   style={[styles.input, { 
                     backgroundColor: colors.bg, 
@@ -168,7 +179,7 @@ export default function InvitadosScreen({ navigation }) {
                     borderColor: colors.border,
                     fontSize: 16 * fontScale
                   }]}
-                  placeholder="Ej: Padrino de anillos"
+                  placeholder={t("guestRolePlaceholder")}
                   placeholderTextColor={colors.muted}
                   value={newGuest.role}
                   onChangeText={(text) => setNewGuest({ ...newGuest, role: text })}
@@ -179,7 +190,9 @@ export default function InvitadosScreen({ navigation }) {
                 style={[styles.addButton, { backgroundColor: colors.accent }]}
                 onPress={addGuest}
               >
-                <Text style={[styles.addButtonText, { fontSize: 16 * fontScale }]}>Agregar</Text>
+                <Text style={[styles.addButtonText, { fontSize: 16 * fontScale }]}>
+                  {t("add")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

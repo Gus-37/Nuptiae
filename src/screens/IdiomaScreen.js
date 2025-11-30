@@ -10,14 +10,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Check } from "lucide-react-native";
 import { useUISettings } from "../context/UISettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function IdiomaScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
-  const [selectedLanguage, setSelectedLanguage] = useState("Español");
+  const { language, changeLanguage, t } = useLanguage();
 
   const languages = [
-    { id: 1, name: "Español" },
-    { id: 2, name: "Inglés" },
+    { id: 1, name: t("spanish"), code: "es" },
+    { id: 2, name: t("english"), code: "en" },
   ];
 
   return (
@@ -30,37 +31,38 @@ export default function IdiomaScreen({ navigation }) {
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
-            Idioma
+            {t("language")}
           </Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView style={styles.content}>
           <View style={styles.section}>
-            {languages.map((language) => (
-              <TouchableOpacity
-                key={language.id}
-                style={[
-                  styles.languageOption,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  selectedLanguage === language.name && { backgroundColor: colors.accent, borderColor: colors.accent },
-                ]}
-                onPress={() => setSelectedLanguage(language.name)}
-              >
-                <Text
+            {languages.map((lang) => {
+              const selected = language === lang.code;
+              return (
+                <TouchableOpacity
+                  key={lang.id}
                   style={[
-                    styles.languageText,
-                    { color: colors.text, fontSize: 16 * fontScale },
-                    selectedLanguage === language.name && styles.languageTextSelected,
+                    styles.languageOption,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                    selected && { backgroundColor: colors.accent, borderColor: colors.accent },
                   ]}
+                  onPress={() => changeLanguage(lang.code)}
                 >
-                  {language.name}
-                </Text>
-                {selectedLanguage === language.name && (
-                  <Check size={20} color="#fff" />
-                )}
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.languageText,
+                      { color: colors.text, fontSize: 16 * fontScale },
+                      selected && styles.languageTextSelected,
+                    ]}
+                  >
+                    {lang.name}
+                  </Text>
+                  {selected && <Check size={20} color="#fff" />}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,9 +15,11 @@ import { getUserData } from "../services/authService";
 import { getSharedAccountInfo } from "../services/accountService";
 import { ref, update } from 'firebase/database';
 import { useUISettings } from "../context/UISettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function HomeScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [coupleNames, setCoupleNames] = useState("Jessica y Michael");
   const [daysUntilWedding, setDaysUntilWedding] = useState(90);
@@ -115,27 +117,27 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const categories = [
-    { id: 1, name: "Vestidos", icon: "👗", color: theme === 'light' ? "#FFE5E5" : "#4A2828" },
-    { id: 2, name: "Iglesias", icon: "⛪", color: theme === 'light' ? "#FFE5F5" : "#4A284A" },
-    { id: 3, name: "Comida", icon: "🍽️", color: theme === 'light' ? "#FFF5E5" : "#4A3E28" },
-    { id: 4, name: "Zapatos", icon: "👠", color: theme === 'light' ? "#E5F5E5" : "#284A28" },
-  ];
+  const categories = useMemo(() => [
+    { id: 1, name: t("dresses"), icon: "👗", color: theme === 'light' ? "#FFE5E5" : "#4A2828" },
+    { id: 2, name: t("churches"), icon: "⛪", color: theme === 'light' ? "#FFE5F5" : "#4A284A" },
+    { id: 3, name: t("food"), icon: "🍽️", color: theme === 'light' ? "#FFF5E5" : "#4A3E28" },
+    { id: 4, name: t("shoes"), icon: "👠", color: theme === 'light' ? "#E5F5E5" : "#284A28" },
+  ], [language, theme, t]);
 
-  const tasks = [
+  const tasks = useMemo(() => [
     {
       id: 1,
-      title: "Asignar maestro de ceremonias",
-      subtitle: "Fecha límite: 2035jun25",
+      title: t("assignMaster"),
+      subtitle: t("dueDate", "2035/06/25"),
       color: theme === 'light' ? "#FFE5E5" : "#4A2828",
     },
     {
       id: 2,
-      title: "Lista de canciones nupciales",
-      subtitle: "Fecha límite: 3000/5/28",
+      title: t("songsList"),
+      subtitle: t("dueDate", "3000/05/28"),
       color: theme === 'light' ? "#FFE5E5" : "#4A2828",
     },
-  ];
+  ], [language, theme, t]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
@@ -157,9 +159,15 @@ export default function HomeScreen({ navigation }) {
               <ActivityIndicator size="large" color={colors.accent} style={{ marginVertical: 20 }} />
             ) : (
               <>
-                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 24 * fontScale }]}>¡Bienvenidos</Text>
-                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 24 * fontScale }]}>{coupleNames}!</Text>
-                <Text style={[styles.countdown, { color: colors.muted, fontSize: 14 * fontScale }]}>{daysUntilWedding} días para tu boda</Text>
+                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 24 * fontScale }]}>
+                  {t("welcomePrefix")}
+                </Text>
+                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 24 * fontScale }]}>
+                  {coupleNames}!
+                </Text>
+                <Text style={[styles.countdown, { color: colors.muted, fontSize: 14 * fontScale }]}>
+                  {t("daysUntilWedding", daysUntilWedding)}
+                </Text>
               </>
             )}
             
@@ -168,11 +176,13 @@ export default function HomeScreen({ navigation }) {
               <View style={[styles.progressBar, { backgroundColor: theme === 'light' ? '#f0f0f0' : '#2A2A2A' }]}>
                 <View style={[styles.progressFill, { width: `${progressPercentage}%`, backgroundColor: colors.accent }]} />
               </View>
-              <Text style={[styles.progressText, { color: colors.text, fontSize: 14 * fontScale }]}>{progressPercentage}%</Text>
+              <Text style={[styles.progressText, { color: colors.text, fontSize: 14 * fontScale }]}>
+                {progressPercentage}%
+              </Text>
             </View>
 
             <Text style={[styles.exploreText, { color: colors.muted, fontSize: 14 * fontScale }]}>
-              Explora el catálogo para tu gran día
+              {t("explore")}
             </Text>
           </View>
 
@@ -188,13 +198,15 @@ export default function HomeScreen({ navigation }) {
                   key={category.id}
                   style={[styles.categoryCard, { backgroundColor: category.color }]}
                   onPress={() => {
-                    if (category.name === "Vestidos") {
+                    if (category.id === 1) {
                       navigation.navigate("Vestidos");
                     }
                   }}
                 >
                   <Text style={styles.categoryIcon}>{category.icon}</Text>
-                  <Text style={[styles.categoryName, { color: colors.text, fontSize: 14 * fontScale }]}>{category.name}</Text>
+                  <Text style={[styles.categoryName, { color: colors.text, fontSize: 14 * fontScale }]}>
+                    {category.name}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -202,7 +214,9 @@ export default function HomeScreen({ navigation }) {
 
           {/* Próximas Tareas */}
           <View style={styles.tasksSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Tareas próximas</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+              {t("upcomingTasks")}
+            </Text>
             {tasks.map((task) => (
               <TouchableOpacity
                 key={task.id}
@@ -210,8 +224,12 @@ export default function HomeScreen({ navigation }) {
               >
                 <View style={[styles.taskDot, { backgroundColor: colors.accent }]} />
                 <View style={styles.taskContent}>
-                  <Text style={[styles.taskTitle, { color: colors.text, fontSize: 15 * fontScale }]}>{task.title}</Text>
-                  <Text style={[styles.taskSubtitle, { color: colors.muted, fontSize: 13 * fontScale }]}>{task.subtitle}</Text>
+                  <Text style={[styles.taskTitle, { color: colors.text, fontSize: 15 * fontScale }]}>
+                    {task.title}
+                  </Text>
+                  <Text style={[styles.taskSubtitle, { color: colors.muted, fontSize: 13 * fontScale }]}>
+                    {task.subtitle}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}

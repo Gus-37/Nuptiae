@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity, StatusBar } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell } from 'lucide-react-native';
 import { useUISettings } from '../context/UISettingsContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function NotificationsScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const [enabled, setEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
 

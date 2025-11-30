@@ -7,9 +7,11 @@ import { ref as dbRef, get, update } from 'firebase/database';
 import { updateProfile, EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from 'firebase/auth';
 import { DeviceEventEmitter } from 'react-native';
 import { useUISettings } from '../context/UISettingsContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ProfileEditScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const user = auth.currentUser;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,7 +24,7 @@ export default function ProfileEditScreen({ navigation }) {
     const load = async () => {
       try {
         if (!user) {
-          Alert.alert('Sesión', 'No hay usuario.');
+          Alert.alert(t("session"), t("noUser"));
           navigation.goBack();
           return;
         }
@@ -31,17 +33,17 @@ export default function ProfileEditScreen({ navigation }) {
         setDisplayName(user.displayName || data.name || '');
         setEmail(user.email || data.email || '');
       } catch (e) {
-        Alert.alert('Error', 'No se pudo cargar el perfil.');
+        Alert.alert(t("error"), t("errorLoadProfile"));
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [user, navigation]);
+  }, [user, navigation, t]);
 
   const maybeReauth = async (willChangeEmail) => {
     if (!willChangeEmail) return;
-    if (!currentPassword) throw new Error('Ingresa contraseña actual para cambiar el correo.');
+    if (!currentPassword) throw new Error(t("enterCurrentPassword"));
     const cred = EmailAuthProvider.credential(user.email, currentPassword);
     await reauthenticateWithCredential(user, cred);
   };
@@ -61,8 +63,8 @@ export default function ProfileEditScreen({ navigation }) {
       if (willChangeEmail) {
         await verifyBeforeUpdateEmail(user, newEmail);
         Alert.alert(
-          'Verificación requerida',
-          'Te enviamos un correo de verificación al nuevo email. Verifícalo y vuelve a abrir la app para completar el cambio.'
+          t("verificationRequired"),
+          t("verificationMessage")
         );
       }
 
@@ -74,22 +76,25 @@ export default function ProfileEditScreen({ navigation }) {
       // Actualiza tu base de datos con los datos visibles; el email final se confirmará tras la verificación
       await update(dbRef(database, `users/${user.uid}`), {
         name: displayName,
-        email: newEmail, // opcional: puedes omitirlo hasta que se verifique
+        email: newEmail,
         updatedAt: new Date().toISOString(),
       });
 
       DeviceEventEmitter.emit('profileUpdated', { name: displayName, email: newEmail });
-      Alert.alert('Éxito', willChangeEmail ? 'Nombre actualizado. Revisa tu correo para confirmar el nuevo email.' : 'Perfil actualizado.');
+      Alert.alert(
+        t("successTitle"), 
+        willChangeEmail ? t("nameUpdatedEmailPending") : t("profileUpdated")
+      );
       navigation.goBack();
     } catch (e) {
       console.log('Save error:', e);
-      let msg = e.message || 'Error al guardar.';
+      let msg = e.message || t("errorSaving");
       if (e.code === 'auth/requires-recent-login') {
-        msg = 'Vuelve a iniciar sesión para cambiar el correo.';
+        msg = t("requiresRecentLogin");
       } else if (e.code === 'auth/operation-not-allowed') {
-        msg = 'El cambio de correo requiere verificación previa. Revisa tu configuración de autenticación en Firebase.';
+        msg = t("operationNotAllowed");
       }
-      Alert.alert('Error', msg);
+      Alert.alert(t("error"), msg);
     } finally {
       setSaving(false);
     }
@@ -113,26 +118,32 @@ export default function ProfileEditScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Editar Perfil</Text>
+        <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+          {t("editProfile")}
+        </Text>
         <TouchableOpacity disabled={saving} onPress={onSave}>
           <Save size={22} color={saving ? colors.muted : colors.accent} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Nombre</Text>
+        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>
+          {t("name")}
+        </Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
-          placeholder="Tu nombre"
+          placeholder={t("namePlaceholder")}
           placeholderTextColor={colors.muted}
           value={displayName}
           onChangeText={setDisplayName}
         />
 
-        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Correo</Text>
+        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>
+          {t("email")}
+        </Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
-          placeholder="correo@dominio.com"
+          placeholder={t("emailPlaceholder")}
           placeholderTextColor={colors.muted}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -140,18 +151,26 @@ export default function ProfileEditScreen({ navigation }) {
           onChangeText={setEmail}
         />
 
-        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Contraseña actual (solo si cambias correo)</Text>
+        <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>
+          {t("currentPassword")}
+        </Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
-          placeholder="••••••••"
+          placeholder={t("passwordPlaceholder")}
           placeholderTextColor={colors.muted}
           secureTextEntry
           value={currentPassword}
           onChangeText={setCurrentPassword}
         />
 
-        <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.accent }, saving && { opacity: 0.6 }]} disabled={saving} onPress={onSave}>
-          <Text style={[styles.saveBtnText, { fontSize: 16 * fontScale }]}>{saving ? 'Guardando...' : 'Guardar cambios'}</Text>
+        <TouchableOpacity 
+          style={[styles.saveBtn, { backgroundColor: colors.accent }, saving && { opacity: 0.6 }]} 
+          disabled={saving} 
+          onPress={onSave}
+        >
+          <Text style={[styles.saveBtnText, { fontSize: 16 * fontScale }]}>
+            {saving ? t("saving") : t("saveChanges")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

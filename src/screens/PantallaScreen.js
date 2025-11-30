@@ -11,15 +11,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Sun, Moon } from "lucide-react-native";
 import { useUISettings } from "../context/UISettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function PantallaScreen({ navigation }) {
   const { theme, setTheme, textSize, setTextSize, fontScale, colors } = useUISettings();
+  const { t } = useLanguage();
 
   const darkMode = theme === "dark";
   const textSizes = [
-    { id: "normal", label: "Normal", base: 16 },
-    { id: "large", label: "Grande", base: 18 },
-    { id: "extra", label: "Extra Grande", base: 21 },
+    { id: "normal", label: t("normal"), base: 16 },
+    { id: "large", label: t("large"), base: 18 },
+    { id: "extra", label: t("extraLarge"), base: 21 },
   ];
 
   return (
@@ -36,7 +38,7 @@ export default function PantallaScreen({ navigation }) {
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
-            Pantalla
+            {t("display")}
           </Text>
           <View style={{ width: 24 }} />
         </View>
@@ -51,7 +53,7 @@ export default function PantallaScreen({ navigation }) {
                   {darkMode ? <Moon size={20} color={colors.muted} /> : <Sun size={20} color={colors.muted} />}
                 </View>
                 <Text style={[styles.optionText, { color: colors.text, fontSize: 16 * fontScale }]}>
-                  Modo oscuro
+                  {t("darkMode")}
                 </Text>
               </View>
               <Switch
@@ -66,7 +68,7 @@ export default function PantallaScreen({ navigation }) {
           {/* Tamaño de texto */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 16 * fontScale }]}>
-              Tamaño de texto
+              {t("textSize")}
             </Text>
             {textSizes.map(ts => {
               const active = textSize === ts.id;
