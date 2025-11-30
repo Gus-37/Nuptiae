@@ -53,6 +53,23 @@ export default function ProductDetailScreen({ route, navigation }) {
     );
   };
 
+  const handleReserve = async () => {
+    // Build an item payload compatible with CostosScreen expectations
+    const item = {
+      name: product.name,
+      detail: product.description || `${product.name}`,
+      price: typeof product.price === 'number' ? `$${product.price}` : product.price || '$0',
+      image: product.image || null,
+      createdAt: new Date().toISOString(),
+      // mark initially as in carrito so CostosScreen shows it in the cart
+      status: 'carrito'
+    };
+
+    // Navigate to Costos screen inside the main Drawer navigator (HomeDrawer)
+    // use nested navigation: navigate to HomeDrawer -> Costos with params
+    navigation.navigate('HomeDrawer', { screen: 'Costos', params: { tab: 'carrito', newItem: item } });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
@@ -165,7 +182,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           <Phone size={20} color="#fff" />
           <Text style={styles.contactButtonText}>Contactar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.reserveButton}>
+        <TouchableOpacity style={styles.reserveButton} onPress={handleReserve}>
           <Text style={styles.reserveButtonText}>Reservar</Text>
         </TouchableOpacity>
       </View>
