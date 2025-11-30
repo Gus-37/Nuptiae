@@ -70,8 +70,8 @@ export default function InvitadosScreen({ navigation }) {
                   <Text style={styles.avatarText}>{guest.name.charAt(0)}</Text>
                 </View>
                 <View style={styles.guestInfo}>
-                  <Text style={styles.guestName}>{guest.name}</Text>
-                  <Text style={styles.guestRole}>{guest.role}</Text>
+                  <Text style={styles.guestName} numberOfLines={1}>{guest.name}</Text>
+                  <Text style={styles.guestRole} numberOfLines={1}>{guest.role}</Text>
                 </View>
               </View>
             ))}

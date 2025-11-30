@@ -114,12 +114,22 @@ export const getSharedAccountInfo = async (accountCode) => {
         const userSnapshot = await get(userRef);
         if (userSnapshot.exists()) {
           const userData = userSnapshot.val();
+          // Si no tiene rol, inferirlo del género
+          let userRole = userData.role;
+          if (!userRole && userData.gender) {
+            userRole = userData.gender === 'Femenino' ? 'Novia' : 
+                      userData.gender === 'Masculino' ? 'Novio' : 'Miembro';
+          } else if (!userRole) {
+            userRole = 'Miembro';
+          }
+          
           memberDetails.push({
             uid: memberId,
             name: userData.name || userData.email?.split('@')[0] || 'Usuario',
             email: userData.email,
             gender: userData.gender,
-            role: members[memberId].role,
+            role: userRole,
+            accountRole: members[memberId].role,
             joinedAt: members[memberId].joinedAt
           });
         } else {

@@ -267,6 +267,8 @@ export default function CostosScreen({ navigation, route }) {
       // Tratar como entregados los que contienen 'llegó' o 'entregado'
       return s.includes('llegó') || s.includes('entregado');
     }
+    // Excluir items reservados de la vista 'en proceso'
+    if (s.includes('reserv')) return false;
     // En proceso: resto de items
     return !(s.includes('llegó') || s.includes('entregado'));
   });
@@ -302,10 +304,13 @@ export default function CostosScreen({ navigation, route }) {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <MoreVertical size={24} color="#333" />
+          <TouchableOpacity style={styles.headerButton} onPress={() => { if (navigation && navigation.canGoBack && navigation.canGoBack()) navigation.goBack(); }}>
+            <ArrowLeft size={22} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Costos y presupuesto</Text>
+          <TouchableOpacity style={styles.headerButton} onPress={() => setMenuVisible(true)}>
+            <MoreVertical size={22} color="#333" />
+          </TouchableOpacity>
         </View>
 
         {/* Menu Modal */}
@@ -363,7 +368,6 @@ export default function CostosScreen({ navigation, route }) {
             </Text>
 
             {selectedTab === "presupuesto" ? (
-              // Layout para presupuesto
               <>
                 <Text style={styles.totalLabel}>Indica cuánto quieres gastar en total y quién se encargará de cada partida</Text>
                 <View style={styles.budgetHeaderRange}>
@@ -404,7 +408,9 @@ export default function CostosScreen({ navigation, route }) {
                       </View>
                     </View>
                   )}
+
                 </View>
+
                 {budgetItems.map((item) => (
                   <View key={item.id} style={styles.budgetItemCard}>
                     <TouchableOpacity
@@ -423,7 +429,6 @@ export default function CostosScreen({ navigation, route }) {
                 ))}
               </>
             ) : selectedTab === "compras" ? (
-              // Layout para Compras (vista tipo lista con sub-tabs)
               <>
                 <View style={styles.comprasTabs}>
                   <TouchableOpacity
@@ -440,7 +445,6 @@ export default function CostosScreen({ navigation, route }) {
                   </TouchableOpacity>
                 </View>
                 {comprasTab === 'entregados' ? (
-                  // Mostrar entregados agrupados por mes
                   Object.entries(entregadosByMonth).map(([month, monthItems]) => (
                     <View key={month}>
                       <Text style={styles.monthHeader}>{month}</Text>
@@ -459,7 +463,6 @@ export default function CostosScreen({ navigation, route }) {
                     </View>
                   ))
                 ) : (
-                  // Mostrar en proceso sin agrupar
                   comprasFiltered.map((item) => (
                     <View key={item.id} style={styles.purchaseCard}>
                       <View style={styles.purchaseLeft}>
@@ -475,7 +478,6 @@ export default function CostosScreen({ navigation, route }) {
                 )}
               </>
             ) : (
-              // Layout para Carrito (lista de items con detalle y precio)
               items.map((item) => (
                 <View key={item.id} style={styles.itemCard}>
                   {selectedTab !== "compras" && (
@@ -527,14 +529,32 @@ export default function CostosScreen({ navigation, route }) {
                       <Text style={[styles.budgetRangeInfo, { color: '#000' }]}>Disponible: ${budgetMax} | Gastado: {formatPrice(totalSpent)}</Text>
                     )}
                     {selectedTab === "carrito" && (
-                      <TouchableOpacity
-                        style={styles.finalizeButton}
-                        onPress={() => {
-                          // TODO: implementar finalización de compra
-                        }}
-                      >
-                        <Text style={styles.finalizeButtonText}>Finalizar compra</Text>
-                      </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.finalizeButton}
+                              onPress={async () => {
+                                // Marcar items reservados como 'En proceso' (visible en Compras -> En proceso)
+                                const reserved = items.filter(i => (i.status || '').toLowerCase().includes('reserv'));
+                                if (!reserved.length) return;
+                                try {
+                                  if (!uid && !sharedCode) {
+                                    // local fallback
+                                    setItems(prev => prev.map(i => ((i.status||'').toLowerCase().includes('reserv')) ? { ...i, status: 'En proceso' } : i));
+                                  } else {
+                                    for (const it of reserved) {
+                                      if (sharedCode) {
+                                        await budgetService.updateItemForAccount(sharedCode, it.id, { status: 'En proceso' });
+                                      } else {
+                                        await budgetService.updateItem(uid, it.id, { status: 'En proceso' });
+                                      }
+                                    }
+                                  }
+                                } catch (err) {
+                                  console.error('Error finalizing reserved items', err);
+                                }
+                              }}
+                            >
+                              <Text style={styles.finalizeButtonText}>Finalizar compra</Text>
+                            </TouchableOpacity>
                     )}
                   </>
                 );
@@ -675,9 +695,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
@@ -829,6 +849,12 @@ const styles = StyleSheet.create({
   },
   navIcon: {
     fontSize: 24,
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   removeButton: {
     position: "absolute",
@@ -1106,8 +1132,9 @@ const styles = StyleSheet.create({
   menuContainer: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    marginTop: 60,
-    marginLeft: 16,
+    position: 'absolute',
+    top: 8,
+    right: 8,
     paddingVertical: 8,
     minWidth: 200,
     shadowColor: "#000",

@@ -1,0 +1,124 @@
+{
+  "products": {
+    "vestidos": {
+      "vestido-1": {
+        "name": "Vestido de Novia Clásico",
+        "price": "$1,200",
+        "image": "https://i.pinimg.com/originals/a6/ee/a0/a6eea0fe6911242c3c56fa59d9d1d4de.jpg",
+        "description": "Hermoso vestido de novia blanco con escote en V, mangas largas de encaje y diseño clásico atemporal",
+        "provider": "Boutique Elegance",
+        "rating": 4.8,
+        "location": "Ciudad de México",
+        "createdAt": "2024-01-15T10:00:00Z",
+        "updatedAt": "2024-01-15T10:00:00Z"
+      },
+      "vestido-2": {
+        "name": "Vestido de Novia Romántico",
+        "price": "$1,500",
+        "image": "https://i.pinimg.com/originals/e7/8e/29/e78e29fe109ceb6804b7bca5c35ae5c3.jpg",
+        "description": "Elegante vestido de novia con encaje floral, escote corazón y silueta sirena que realza la figura",
+        "provider": "Novias & Estilo",
+        "rating": 4.9,
+        "location": "Guadalajara",
+        "createdAt": "2024-01-16T10:00:00Z",
+        "updatedAt": "2024-01-16T10:00:00Z"
+      }
+    },
+    "trajes": {
+      "traje-1": {
+        "name": "Traje de Novio Elegante",
+        "price": "$800",
+        "image": "https://i.pinimg.com/originals/9a/3d/25/9a3d25e53ada628cdce4f26c3e91be6c.png",
+        "description": "Traje de novio negro clásico con corte impecable, incluye chaleco y corbatín para un look sofisticado",
+        "provider": "Caballeros Distinguidos",
+        "rating": 4.7,
+        "location": "Monterrey",
+        "createdAt": "2024-01-17T10:00:00Z",
+        "updatedAt": "2024-01-17T10:00:00Z"
+      },
+      "traje-2": {
+        "name": "Traje de Novio Moderno",
+        "price": "$950",
+        "image": "https://cdn0.bodas.net/article-dress/2804/original/1280/jpg/m654082.jpeg",
+        "description": "Traje de novio gris perla de tres piezas con corte moderno, ideal para bodas elegantes y sofisticadas",
+        "provider": "Estilo Masculino",
+        "rating": 4.8,
+        "location": "Puebla",
+        "createdAt": "2024-01-18T10:00:00Z",
+        "updatedAt": "2024-01-18T10:00:00Z"
+      }
+    },
+    "floristerias": {
+      "floristeria-1": {
+        "name": "Ramo de Novia Clásico",
+        "price": "$350",
+        "image": "https://th.bing.com/th/id/R.e16df49b64ba3176068731e290c35c2d?rik=YSL0ytBxd2us0g&riu=http%3a%2f%2fwww.florespedia.com%2fImagenes%2flas-10-mejores-flores-de-boda-y-su-significado.jpg&ehk=e%2bO9KbQ4jjoSoYBgtnIBLKA1xnUyv8ocu%2bi5%2fqsjKTg%3d&risl=&pid=ImgRaw&r=0",
+        "description": "Hermoso ramo con las 10 mejores flores de boda y su significado",
+        "provider": "Flores & Aromas",
+        "rating": 4.9,
+        "location": "Querétaro",
+        "createdAt": "2024-01-19T10:00:00Z",
+        "updatedAt": "2024-01-19T10:00:00Z"
+      },
+      "floristeria-2": {
+        "name": "Bouquet con Dalias",
+        "price": "$420",
+        "image": "https://cdn0.bodas.com.mx/article-gallery-o/00000/original/960/jpg/articulos-a-fotos/decoracion/bouquet-con-flores-dalia.jpeg",
+        "description": "Elegante bouquet con flores dalia en tonos románticos",
+        "provider": "Jardín de Eventos",
+        "rating": 4.8,
+        "location": "Mérida",
+        "createdAt": "2024-01-20T10:00:00Z",
+        "updatedAt": "2024-01-20T10:00:00Z"
+      }
+    },
+    "accesorios": {
+      "accesorio-1": {
+        "name": "Set de Accesorios para Boda",
+        "price": "$180",
+        "image": "https://partytimecr.com/wp-content/uploads/2016/07/Boda-Set-Accesorios-PP560-Party-Time-Heredia.jpg",
+        "description": "Set completo de accesorios para boda incluyendo copas y velas",
+        "provider": "Party & Wedding",
+        "rating": 4.6,
+        "location": "Tijuana",
+        "createdAt": "2024-01-21T10:00:00Z",
+        "updatedAt": "2024-01-21T10:00:00Z"
+      },
+      "accesorio-2": {
+        "name": "Accesorios Elegantes para Novia",
+        "price": "$220",
+        "image": "https://i.pinimg.com/originals/64/54/c8/6454c8d3f02b90e089b4788169e8a279.jpg",
+        "description": "Conjunto de accesorios elegantes para complementar tu look de novia",
+        "provider": "Detalles Perfectos",
+        "rating": 4.7,
+        "location": "León",
+        "createdAt": "2024-01-22T10:00:00Z",
+        "updatedAt": "2024-01-22T10:00:00Z"
+      }
+    },
+    "fotografia": {
+      "fotografia-1": {
+        "name": "Paquete Fotográfico Premium",
+        "price": "$2,500",
+        "image": "https://th.bing.com/th/id/OIP.aFYktHcdiY8bhl3MAvQgKAHaE8?w=289&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+        "description": "Paquete completo de fotografía profesional para tu boda",
+        "provider": "Momentos Únicos",
+        "rating": 4.9,
+        "location": "Cancún",
+        "createdAt": "2024-01-23T10:00:00Z",
+        "updatedAt": "2024-01-23T10:00:00Z"
+      },
+      "fotografia-2": {
+        "name": "Sesión Fotográfica Profesional",
+        "price": "$3,200",
+        "image": "https://images.unsplash.com/photo-1519741497674-611481863552?w=500",
+        "description": "Sesión fotográfica completa con álbum y retoque digital incluido",
+        "provider": "Foto Arte Studio",
+        "rating": 5.0,
+        "location": "Playa del Carmen",
+        "createdAt": "2024-01-24T10:00:00Z",
+        "updatedAt": "2024-01-24T10:00:00Z"
+      }
+    }
+  }
+}

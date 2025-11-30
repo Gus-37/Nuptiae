@@ -165,9 +165,9 @@ export default function HomeScreen({ navigation }) {
               <ActivityIndicator size="large" color="#ff6b6b" style={{ marginVertical: 20 }} />
             ) : (
               <>
-                <Text style={styles.welcomeTitle}>¡Bienvenidos</Text>
-                <Text style={styles.welcomeTitle}>{coupleNames}!</Text>
-                <Text style={styles.countdown}>{daysUntilWedding} días para tu boda</Text>
+                <Text style={styles.welcomeTitle} numberOfLines={1}>¡Bienvenidos</Text>
+                <Text style={styles.welcomeTitle} numberOfLines={2}>{coupleNames}!</Text>
+                <Text style={styles.countdown} numberOfLines={1}>{daysUntilWedding} días para tu boda</Text>
               </>
             )}
             
@@ -202,7 +202,7 @@ export default function HomeScreen({ navigation }) {
                   }}
                 >
                   <Text style={styles.categoryIcon}>{category.icon}</Text>
-                  <Text style={styles.categoryName}>{category.name}</Text>
+                  <Text style={styles.categoryName} numberOfLines={1}>{category.name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -218,8 +218,8 @@ export default function HomeScreen({ navigation }) {
               >
                 <View style={styles.taskDot} />
                 <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  <Text style={styles.taskSubtitle}>{task.subtitle}</Text>
+                  <Text style={styles.taskTitle} numberOfLines={2}>{task.title}</Text>
+                  <Text style={styles.taskSubtitle} numberOfLines={1}>{task.subtitle}</Text>
                 </View>
               </TouchableOpacity>
             ))}

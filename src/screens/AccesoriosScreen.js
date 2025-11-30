@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -7,37 +7,24 @@ import {
     ScrollView,
     Image,
     StatusBar,
+    ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, MapPin } from "lucide-react-native";
+import { listenToProducts } from "../services/productsService";
 
 export default function AccesoriosScreen({ navigation }) {
-    const accesorios = [
-        {
-            id: 1,
-            name: "Anillos #1",
-            price: "$3,000",
-            image: "https://images.pexels.com/photos/265856/pexels-photo-265856.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 2,
-            name: "Corona #2",
-            price: "$4,000",
-            image: "https://images.pexels.com/photos/3014856/pexels-photo-3014856.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 3,
-            name: "Collares #3",
-            price: "$2,500",
-            image: "https://images.pexels.com/photos/1232931/pexels-photo-1232931.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 4,
-            name: "Guantes #4",
-            price: "$1,500",
-            image: "https://images.pexels.com/photos/3014856/pexels-photo-3014856.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-    ];
+    const [accesorios, setAccesorios] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = listenToProducts('accesorios', (products) => {
+            setAccesorios(products);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -60,17 +47,35 @@ export default function AccesoriosScreen({ navigation }) {
                         <Text style={styles.locationText}>Aguascalientes</Text>
                     </TouchableOpacity>
 
-                    <View style={styles.grid}>
-                        {accesorios.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
-                                <View style={styles.cardContent}>
-                                    <Text style={styles.itemName}>{item.name}</Text>
-                                    <Text style={styles.itemPrice}>{item.price}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    {loading ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color="#ff6b6b" />
+                            <Text style={styles.loadingText}>Cargando productos...</Text>
+                        </View>
+                    ) : accesorios.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No hay productos disponibles</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.grid}>
+                            {accesorios.map((item) => (
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={styles.card}
+                                    onPress={() => navigation.navigate('ProductDetail', {
+                                        product: item,
+                                        category: 'Accesorios'
+                                    })}
+                                >
+                                    <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
+                                    <View style={styles.cardContent}>
+                                        <Text style={styles.itemName}>{item.name}</Text>
+                                        <Text style={styles.itemPrice}>{item.price}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -165,5 +170,26 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "500",
         color: "#666",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: "#666",
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: "#999",
     },
 });

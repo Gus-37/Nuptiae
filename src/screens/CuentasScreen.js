@@ -54,18 +54,21 @@ export default function CuentasScreen({ navigation }) {
           );
           
           if (currentUserAccount) {
+            // El rol ya viene correcto desde accountInfo (userData.role)
+            const userRole = currentUserAccount.role || 'Miembro';
+            
             // Determinar avatar basado en género o rol
             let avatar = "👤"; // Default
-            if (currentUserAccount.gender === 'Femenino' || currentUserAccount.role === 'Novia') {
+            if (currentUserAccount.gender === 'Femenino' || userRole === 'Novia') {
               avatar = "👰";
-            } else if (currentUserAccount.gender === 'Masculino' || currentUserAccount.role === 'Novio') {
+            } else if (currentUserAccount.gender === 'Masculino' || userRole === 'Novio') {
               avatar = "🤵";
             }
             
             const formattedAccount = {
               id: currentUserAccount.uid,
               name: currentUserAccount.name || currentUser.displayName || currentUserAccount.email?.split('@')[0] || 'Usuario',
-              role: currentUserAccount.role === 'owner' ? 'Creador' : currentUserAccount.role || 'Miembro',
+              role: userRole,
               avatar: avatar,
               email: currentUserAccount.email,
               gender: currentUserAccount.gender,
@@ -157,8 +160,8 @@ export default function CuentasScreen({ navigation }) {
               <View style={styles.avatarContainer}>
                 <Text style={styles.avatarLarge}>{selectedAccount.avatar}</Text>
               </View>
-              <Text style={styles.profileName}>{selectedAccount.name}</Text>
-              <Text style={styles.profileRole}>{selectedAccount.role}</Text>
+              <Text style={styles.profileName} numberOfLines={2}>{selectedAccount.name}</Text>
+              <Text style={styles.profileRole} numberOfLines={1}>{selectedAccount.role}</Text>
             </View>
 
             <View style={styles.menuSection}>
@@ -269,8 +272,8 @@ export default function CuentasScreen({ navigation }) {
                     <Text style={styles.avatarEmoji}>{account.avatar}</Text>
                   </View>
                   <View style={styles.accountInfo}>
-                    <Text style={styles.accountName}>{account.name}</Text>
-                    <Text style={styles.accountRole}>{account.role}</Text>
+                    <Text style={styles.accountName} numberOfLines={1}>{account.name}</Text>
+                    <Text style={styles.accountRole} numberOfLines={1}>{account.role}</Text>
                   </View>
                   <ChevronRight size={20} color="#999" />
                 </TouchableOpacity>

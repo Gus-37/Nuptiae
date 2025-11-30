@@ -19,30 +19,56 @@ import { auth } from '../config/firebaseConfig';
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { name = 'Usuario', role = 'Rol', avatar, bgColor = '#ccc' } = route.params || {};
-  const [userAvatar, setUserAvatar] = useState(avatar);
+  const [userName, setUserName] = useState('Usuario');
+  const [userRole, setUserRole] = useState('Rol');
+  const [userAvatar, setUserAvatar] = useState(null);
+  const [bgColor, setBgColor] = useState('#ccc');
   const [activeMenu, setActiveMenu] = useState('perfil');
   const [accountCode, setAccountCode] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAccountCode();
+    loadUserData();
   }, []);
 
-  const loadAccountCode = async () => {
+  const loadUserData = async () => {
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
         const userData = await getUserData(currentUser.uid);
-        if (userData.success && userData.data.sharedAccountCode) {
-          const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
-          if (accountInfo.success) {
-            setAccountCode(accountInfo.account.code);
+        
+        if (userData.success) {
+          // Establecer nombre del usuario
+          const displayName = userData.data.name || currentUser.displayName || 'Usuario';
+          setUserName(displayName);
+          
+          // Establecer rol del usuario
+          const role = userData.data.role || 'Miembro';
+          setUserRole(role);
+          
+          // Establecer avatar y color según género/rol
+          if (userData.data.gender === 'Femenino' || role === 'Novia') {
+            setUserAvatar('👰');
+            setBgColor('#FFE5E5');
+          } else if (userData.data.gender === 'Masculino' || role === 'Novio') {
+            setUserAvatar('🤵');
+            setBgColor('#E5F0FF');
+          } else {
+            setUserAvatar('👤');
+            setBgColor('#F0F0F0');
+          }
+          
+          // Obtener código de cuenta compartida
+          if (userData.data.sharedAccountCode) {
+            const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
+            if (accountInfo.success) {
+              setAccountCode(accountInfo.account.code);
+            }
           }
         }
       }
     } catch (error) {
-      console.error('Error al cargar código:', error);
+      console.error('Error al cargar datos del usuario:', error);
     } finally {
       setLoading(false);
     }
@@ -70,8 +96,8 @@ export default function ProfileScreen() {
         // Navigate to ProfileDetail in the root stack
         const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
         navigation.getParent()?.navigate('ProfileDetail', {
-          name,
-          role,
+          name: userName,
+          role: userRole,
           avatar: avatarUri,
           username: 'usuario123',
           bgColor,
@@ -107,8 +133,8 @@ export default function ProfileScreen() {
         // Navigate to Idioma in the drawer
         const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
         navigation.navigate('Idioma', {
-          name,
-          role,
+          name: userName,
+          role: userRole,
           avatar: avatarUri,
           username: 'usuario123',
           bgColor,
@@ -124,8 +150,8 @@ export default function ProfileScreen() {
         // Navigate to Pantalla in the drawer
         const avatarUri = typeof userAvatar === 'object' && userAvatar?.uri ? userAvatar.uri : userAvatar;
         navigation.navigate('Pantalla', {
-          name,
-          role,
+          name: userName,
+          role: userRole,
           avatar: avatarUri,
           username: 'usuario123',
           bgColor,
@@ -148,10 +174,10 @@ export default function ProfileScreen() {
           {/* Avatar y nombre */}
           <VStack alignItems="center" mb={24}>
             <Avatar size="2xl" mb={16} bg={bgColor}>
-              {userAvatar && <AvatarImage source={{ uri: userAvatar }} alt={name} />}
+              {userAvatar && <AvatarImage source={{ uri: userAvatar }} alt={userName} />}
             </Avatar>
-            <Text fontSize={24} fontWeight="600" color="#111">{name}</Text>
-            <Text fontSize={16} color="#666" mt={4}>{role}</Text>
+            <Text fontSize={24} fontWeight="600" color="#111">{userName}</Text>
+            <Text fontSize={16} color="#666" mt={4}>{userRole}</Text>
           </VStack>
 
           {/* Código de Cuenta Compartida */}
