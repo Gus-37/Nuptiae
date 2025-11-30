@@ -15,7 +15,8 @@ import CuentasScreen from "../screens/CuentasScreen";
 import PantallaScreen from "../screens/PantallaScreen";
 import IdiomaScreen from "../screens/IdiomaScreen";
 import RolesScreen from "../screens/RolesScreen";
-import TareasScreen from "../screens/TareasScreen";
+import TareasStack from "../navigation/TareasStack";
+import PreparativosScreen from "../screens/PreparativosScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -186,7 +187,8 @@ export default function DrawerNavigator() {
         component={AgendaScreen}
         options={{ 
           title: "Agenda",
-          drawerItemStyle: { display: 'none' }
+          drawerLabel: "Agenda",
+          headerShown: true
         }}
       />
       <Drawer.Screen
@@ -207,10 +209,19 @@ export default function DrawerNavigator() {
       />
       <Drawer.Screen
         name="Tareas"
-        component={TareasScreen}
+        component={TareasStack}
         options={{ 
           title: "Tareas",
-          drawerItemStyle: { display: 'none' }
+          drawerLabel: "Tareas"
+        }}
+      />
+
+      <Drawer.Screen
+        name="Preparativos"
+        component={PreparativosScreen}
+        options={{ 
+          title: "Preparativos",
+          drawerLabel: "Preparativos"
         }}
       />
       <Drawer.Screen

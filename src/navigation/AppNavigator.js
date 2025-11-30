@@ -24,6 +24,7 @@ import SharedAccountScreen from "../screens/SharedAccountScreen";
 
 // Tareas Stack Screens
 import AddTareaScreen from "../screens/AddTareaScreen";
+import AddPreparativoScreen from "../screens/AddPreparativoScreen";
 
 // Invitados Stack Screens
 import AddInvitadoScreen from "../screens/AddInvitadoScreen";
@@ -101,6 +102,16 @@ export default function AppNavigator() {
       <Stack.Screen 
         name="AddTarea" 
         component={AddTareaScreen}
+        options={{ 
+          animation: 'slide_from_bottom',
+          presentation: 'modal'
+        }}
+      />
+      
+      {/* Preparativos Stack Screens */}
+      <Stack.Screen 
+        name="AddPreparativo" 
+        component={AddPreparativoScreen}
         options={{ 
           animation: 'slide_from_bottom',
           presentation: 'modal'
