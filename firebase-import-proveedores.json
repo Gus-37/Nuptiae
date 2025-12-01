@@ -1,0 +1,90 @@
+{
+  "products": {
+    "catedrales": {
+      "catedral-1": {
+        "nombre": "Catedral Basílica de Nuestra Señora de la Asunción",
+        "imagen": "https://images.pexels.com/photos/208208/pexels-photo-208208.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Centro, Aguascalientes",
+        "descripcion": "Hermosa catedral barroca del siglo XVIII, perfecta para ceremonias religiosas elegantes y tradicionales. Cuenta con capacidad para 500 personas, órgano tubular y hermosos vitrales que crean una atmósfera única para tu boda."
+      },
+      "catedral-2": {
+        "nombre": "Templo de San Antonio",
+        "imagen": "https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "San Antonio, Aguascalientes",
+        "descripcion": "Templo con arquitectura neoclásica del siglo XIX, ideal para bodas íntimas y ceremonias especiales. Ofrece un ambiente acogedor con capacidad para 200 personas y hermosa decoración interior."
+      },
+      "catedral-3": {
+        "nombre": "Parroquia de Guadalupe",
+        "imagen": "https://images.pexels.com/photos/2747901/pexels-photo-2747901.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Guadalupe, Aguascalientes",
+        "descripcion": "Parroquia tradicional con amplio atrio y jardines exteriores perfectos para fotografías. Capacidad para 300 personas con hermosos altares y decoración colonial."
+      }
+    },
+    "hoteles": {
+      "hotel-1": {
+        "nombre": "Hotel Trojes",
+        "imagen": "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Aguascalientes",
+        "descripcion": "Resort de lujo con amplios jardines tropicales, alberca estilo infinity y salones para eventos. Perfecto para recepciones elegantes con capacidad hasta 400 invitados. Incluye servicio de banquetes, DJ y decoración."
+      },
+      "hotel-2": {
+        "nombre": "Gran Hotel Alameda",
+        "imagen": "https://images.pexels.com/photos/1838554/pexels-photo-1838554.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Centro, Aguascalientes",
+        "descripcion": "Hotel boutique con elegantes salones de eventos, terraza panorámica y jardín interior. Capacidad para 250 personas, incluye servicio completo de catering, mobiliario y coordinación de eventos."
+      },
+      "hotel-3": {
+        "nombre": "Hacienda La Labor",
+        "imagen": "https://images.pexels.com/photos/2869499/pexels-photo-2869499.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Zona Rural, Aguascalientes",
+        "descripcion": "Hacienda colonial restaurada con amplios jardines, capilla privada y espacios al aire libre. Ideal para bodas campestres con capacidad hasta 350 invitados. Incluye área de estacionamiento y hospedaje."
+      }
+    },
+    "playas": {
+      "playa-1": {
+        "nombre": "Playa Paraíso",
+        "imagen": "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Riviera Maya, Quintana Roo",
+        "descripcion": "Hermosa playa con arena blanca y aguas cristalinas color turquesa, perfecta para bodas al atardecer frente al mar. Incluye gazebo para ceremonia, área lounge y servicio de catering en la playa. Capacidad hasta 150 personas."
+      },
+      "playa-2": {
+        "nombre": "Beach Club Sunset",
+        "imagen": "https://images.pexels.com/photos/1007426/pexels-photo-1007426.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Cancún, Quintana Roo",
+        "descripcion": "Club de playa exclusivo con vista panorámica al mar Caribe. Ofrece área privada para ceremonias, terraza con alberca infinity y salón climatizado. Perfecto para bodas destino con capacidad hasta 200 invitados. Incluye coordinación completa y paquete todo incluido."
+      },
+      "playa-3": {
+        "nombre": "Resort Playa Dorada",
+        "imagen": "https://images.pexels.com/photos/2291367/pexels-photo-2291367.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Puerto Vallarta, Jalisco",
+        "descripcion": "Resort frente al mar con playa privada, jardines tropicales y múltiples espacios para eventos. Ideal para bodas destino con hospedaje incluido para invitados. Capacidad hasta 300 personas con servicio all-inclusive y coordinador de bodas."
+      }
+    },
+    "accesorios_personalizados": {
+      "accesorio-1": {
+        "nombre": "Gemelos para Novio Personalizados",
+        "imagen": "https://images.pexels.com/photos/1839904/pexels-photo-1839904.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Aguascalientes",
+        "descripcion": "Elegantes gemelos de acero inoxidable con baño de rodio y grabado personalizado con iniciales o fecha especial. Incluye estuche de presentación en terciopelo. Perfectos como regalo para el novio o padrinos. Disponibles en acabado plateado, dorado o negro."
+      },
+      "accesorio-2": {
+        "nombre": "Anillos de Boda en Oro",
+        "imagen": "https://images.pexels.com/photos/265856/pexels-photo-265856.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Aguascalientes",
+        "descripcion": "Hermosos anillos de compromiso y matrimonio en oro de 14k con diseño clásico y atemporal. Incluye grabado interior personalizado con nombres y fecha. Disponibles en oro amarillo, blanco o rosa. Incluye certificado de autenticidad y estuche elegante."
+      },
+      "accesorio-3": {
+        "nombre": "Tocado de Novia con Perlas",
+        "imagen": "https://images.pexels.com/photos/1616113/pexels-photo-1616113.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Aguascalientes",
+        "descripcion": "Delicado tocado artesanal para novia elaborado con perlas naturales, cristales Swarovski y alambre plateado. Diseño ligero y cómodo que complementa cualquier estilo de peinado. Hecho a mano con materiales de alta calidad."
+      },
+      "accesorio-4": {
+        "nombre": "Velo de Novia Cathedral",
+        "imagen": "https://images.pexels.com/photos/3014856/pexels-photo-3014856.jpeg?auto=compress&cs=tinysrgb&w=600",
+        "ubicacion": "Aguascalientes",
+        "descripcion": "Elegante velo estilo catedral de 3 metros de largo en tul de seda con delicado borde de encaje francés. Perfecto para ceremonias formales y elegantes. Incluye peineta para sujeción segura. Disponible en blanco marfil y blanco puro."
+      }
+    }
+  }
+}

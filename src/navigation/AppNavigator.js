@@ -14,6 +14,13 @@ import FotografiaScreen from "../screens/FotografiaScreen";
 import VideoScreen from "../screens/VideoScreen";
 import PromocionesScreen from "../screens/PromocionesScreen";
 import ProductDetailScreen from "../screens/ProductDetailScreen";
+import ProductosScreen from "../screens/ProductosScreen";
+import DetalleProductoScreen from "../screens/DetalleProductoScreen";
+import DetalleProveedorScreen from "../screens/DetalleProveedorScreen";
+import CatedralesScreen from "../screens/CatedralesScreen";
+import HotelesScreen from "../screens/HotelesScreen";
+import PlayasScreen from "../screens/PlayasScreen";
+import AccesoriosPersonalizadosScreen from "../screens/AccesoriosPersonalizadosScreen";
 
 // Profile Stack Screens
 import ProfileDetailScreen from "../screens/ProfileDetailScreen";
@@ -70,6 +77,17 @@ export default function AppNavigator() {
         component={ProductDetailScreen}
         options={{ animation: 'slide_from_right' }}
       />
+      
+      {/* Productos y Detalle de Producto */}
+      <Stack.Screen name="Productos" component={ProductosScreen} />
+      <Stack.Screen name="DetalleProducto" component={DetalleProductoScreen} />
+      <Stack.Screen name="DetalleProveedor" component={DetalleProveedorScreen} />
+      
+      {/* Categorías de Proveedores */}
+      <Stack.Screen name="Catedrales" component={CatedralesScreen} />
+      <Stack.Screen name="Hoteles" component={HotelesScreen} />
+      <Stack.Screen name="Playas" component={PlayasScreen} />
+      <Stack.Screen name="AccesoriosPersonalizados" component={AccesoriosPersonalizadosScreen} />
       
       {/* Profile Stack Screens */}
       <Stack.Screen 

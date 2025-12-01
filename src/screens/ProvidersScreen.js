@@ -31,16 +31,19 @@ export default function ProvidersScreen({ navigation }) {
             id: 1,
             name: "Catedral Zaragoza",
             image: "https://images.pexels.com/photos/208208/pexels-photo-208208.jpeg?auto=compress&cs=tinysrgb&w=600",
+            screen: "Catedrales",
         },
         {
             id: 2,
             name: "Hotel Trojes",
             image: "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600",
+            screen: "Hoteles",
         },
         {
             id: 3,
             name: "Playa",
             image: "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=600",
+            screen: "Playas",
         },
     ];
 
@@ -49,11 +52,13 @@ export default function ProvidersScreen({ navigation }) {
             id: 1,
             name: "Gemelos para novio",
             image: "https://images.pexels.com/photos/1839904/pexels-photo-1839904.jpeg?auto=compress&cs=tinysrgb&w=600",
+            screen: "AccesoriosPersonalizados",
         },
         {
             id: 2,
             name: "Anillos para boda",
             image: "https://images.pexels.com/photos/265856/pexels-photo-265856.jpeg?auto=compress&cs=tinysrgb&w=600",
+            screen: "AccesoriosPersonalizados",
         },
     ];
 
@@ -126,7 +131,11 @@ export default function ProvidersScreen({ navigation }) {
                         <Text style={styles.sectionTitle}>Más populares</Text>
                         <View style={styles.verticalGrid}>
                             {popularProviders.map((provider) => (
-                                <TouchableOpacity key={provider.id} style={styles.verticalCard}>
+                                <TouchableOpacity 
+                                    key={provider.id} 
+                                    style={styles.verticalCard}
+                                    onPress={() => provider.screen && navigation.navigate(provider.screen)}
+                                >
                                     <Image source={{ uri: provider.image }} style={styles.verticalImage} alt={provider.name} />
                                     <Text style={styles.cardTitle}>{provider.name}</Text>
                                 </TouchableOpacity>
@@ -139,7 +148,11 @@ export default function ProvidersScreen({ navigation }) {
                         <Text style={styles.sectionTitle}>Accesorios personalizados</Text>
                         <View style={styles.verticalGrid}>
                             {accessories.map((item) => (
-                                <TouchableOpacity key={item.id} style={styles.verticalCard}>
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={styles.verticalCard}
+                                    onPress={() => item.screen && navigation.navigate(item.screen)}
+                                >
                                     <Image source={{ uri: item.image }} style={styles.verticalImage} alt={item.name} />
                                     <Text style={styles.cardTitle}>{item.name}</Text>
                                 </TouchableOpacity>
@@ -188,7 +201,11 @@ export default function ProvidersScreen({ navigation }) {
                             contentContainerStyle={{ paddingRight: 16 }}
                         >
                             {popularProviders.map((provider) => (
-                                <TouchableOpacity key={provider.id} style={styles.horizontalCard}>
+                                <TouchableOpacity 
+                                    key={provider.id} 
+                                    style={styles.horizontalCard}
+                                    onPress={() => provider.screen && navigation.navigate(provider.screen)}
+                                >
                                     <Image source={{ uri: provider.image }} style={styles.horizontalImage} alt={provider.name} />
                                     <Text style={styles.cardTitle}>{provider.name}</Text>
                                 </TouchableOpacity>
@@ -205,7 +222,11 @@ export default function ProvidersScreen({ navigation }) {
                             contentContainerStyle={{ paddingRight: 16 }}
                         >
                             {accessories.map((item) => (
-                                <TouchableOpacity key={item.id} style={styles.horizontalCard}>
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={styles.horizontalCard}
+                                    onPress={() => item.screen && navigation.navigate(item.screen)}
+                                >
                                     <Image source={{ uri: item.image }} style={styles.horizontalImage} alt={item.name} />
                                     <Text style={styles.cardTitle}>{item.name}</Text>
                                 </TouchableOpacity>

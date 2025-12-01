@@ -1,3 +1,20 @@
+// Formatea fecha tipo YYYY-MM-DD o YYYY/MM/DD a dd/mm/yyyy
+function formatDate(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  let d = dateStr.replace(/\//g, '-');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [y, m, d2] = d.split('-');
+    return `${d2}/${m}/${y}`;
+  }
+  if (/^\d{4}-\d{2}-\d{1,2}$/.test(d)) {
+    const [y, m, d2] = d.split('-');
+    return `${d2}/${m}/${y}`;
+  }
+  if (/^\d{4}\d{2}\d{2}$/.test(d)) {
+    return `${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
+  }
+  return d;
+}
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -13,7 +30,8 @@ import { Menu, Users, ShoppingCart, Calendar, Home } from "lucide-react-native";
 import { auth, database } from "../config/firebaseConfig";
 import { getUserData } from "../services/authService";
 import { getSharedAccountInfo } from "../services/accountService";
-import { ref, update } from 'firebase/database';
+import { ref, update, onValue } from 'firebase/database';
+import { databaseAgendas } from '../config/firebaseAgendas';
 
 export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -33,40 +51,27 @@ export default function HomeScreen({ navigation }) {
 
       // Obtener datos del usuario actual
       const userData = await getUserData(currentUser.uid);
-      
-      // Actualizar nombre en Firebase si es necesario
-      if (currentUser.displayName && userData.success) {
-        const currentName = userData.data.name;
-        const emailPrefix = currentUser.email?.split('@')[0];
-        
-        // Si el nombre es el email o no existe, actualizar con displayName
-        if (!currentName || currentName === emailPrefix) {
-          console.log('Actualizando nombre en Firebase:', currentUser.displayName);
-          await update(ref(database, `users/${currentUser.uid}`), {
-            name: currentUser.displayName
-          });
-          // Actualizar userData local
-          userData.data.name = currentUser.displayName;
-        }
-      }
-      
-      if (userData.success && userData.data.sharedAccountCode) {
-        // Obtener información de la cuenta compartida
-        const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
-        
-        if (accountInfo.success && accountInfo.account.members) {
-          const members = accountInfo.account.members;
-          
-          // Obtener nombres de los miembros
+
+      if (userData.success) {
+        // Si tiene miembros (cuenta compartida)
+        const members = userData.data.members;
+        if (Array.isArray(members) && members.length > 0) {
+          if (currentUser.displayName) {
+            const currentName = userData.data.name;
+            const emailPrefix = currentUser.email?.split('@')[0];
+            if (!currentName || currentName === emailPrefix) {
+              await update(ref(database, `users/${currentUser.uid}`), {
+                name: currentUser.displayName
+              });
+            }
+          }
           if (members.length === 2) {
-            // Asegurar que el usuario actual use su nombre actualizado
-            let name1 = members[0].uid === currentUser.uid 
+            let name1 = members[0].uid === currentUser.uid
               ? (userData.data.name || currentUser.displayName || members[0].name)
               : members[0].name;
-            let name2 = members[1].uid === currentUser.uid 
+            let name2 = members[1].uid === currentUser.uid
               ? (userData.data.name || currentUser.displayName || members[1].name)
               : members[1].name;
-            
             setCoupleNames(`${name1} y ${name2}`);
           } else if (members.length === 1) {
             let name = members[0].uid === currentUser.uid
@@ -74,31 +79,12 @@ export default function HomeScreen({ navigation }) {
               : members[0].name;
             setCoupleNames(name);
           }
-          
-          // Calcular días hasta la boda
-          if (userData.data.weddingDate) {
-            const wedding = new Date(userData.data.weddingDate);
-            setWeddingDate(wedding);
-            const today = new Date();
-            const diffTime = wedding - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
-            
-            // Calcular progreso (desde createdAt hasta weddingDate)
-            if (userData.data.createdAt) {
-              const startDate = new Date(userData.data.createdAt);
-              const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
-              const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-              const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
-              setProgressPercentage(Math.round(progress));
-            }
-          }
+        } else {
+          // Usuario sin cuenta compartida
+          const name = userData.data.name || currentUser.displayName || 'Usuario';
+          setCoupleNames(name);
         }
-      } else if (userData.success) {
-        // Usuario sin cuenta compartida
-        const name = userData.data.name || currentUser.displayName || 'Usuario';
-        setCoupleNames(name);
-        
+        // Calcular días hasta la boda y progreso
         if (userData.data.weddingDate) {
           const wedding = new Date(userData.data.weddingDate);
           setWeddingDate(wedding);
@@ -106,8 +92,6 @@ export default function HomeScreen({ navigation }) {
           const diffTime = wedding - today;
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
-          
-          // Calcular progreso
           if (userData.data.createdAt) {
             const startDate = new Date(userData.data.createdAt);
             const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
@@ -130,20 +114,26 @@ export default function HomeScreen({ navigation }) {
     { id: 4, name: "Zapatos", icon: "👠", color: "#E5F5E5" },
   ];
 
-  const tasks = [
-    {
-      id: 1,
-      title: "Asignar maestro de ceremonias",
-      subtitle: "Fecha límite: 2035jun25",
-      color: "#FFE5E5",
-    },
-    {
-      id: 2,
-      title: "Lista de canciones nupciales",
-      subtitle: "Fecha límite: 3000/5/28",
-      color: "#FFE5E5",
-    },
-  ];
+  // Estado para tareas próximas
+  const [tasks, setTasks] = useState([]);
+
+  // Cargar tareas desde Firebase (agenda/tasks)
+  useEffect(() => {
+    const tasksRef = ref(databaseAgendas, 'agenda/tasks');
+    const unsub = onValue(tasksRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        let items = Object.keys(data).map((key) => ({ ...data[key], id: key }));
+        // Ordenar por fecha (asumiendo que cada tarea tiene un campo 'dueDate' tipo string YYYY-MM-DD o similar)
+        items = items.filter(t => t.dueDate).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        // Solo las 3 más próximas
+        setTasks(items.slice(0, 3));
+      } else {
+        setTasks([]);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -157,7 +147,6 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.logoText}>Nuptiae</Text>
           <View style={{ width: 24 }} />
         </View>
-
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
@@ -170,7 +159,6 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.countdown} numberOfLines={1}>{daysUntilWedding} días para tu boda</Text>
               </>
             )}
-            
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
@@ -178,12 +166,10 @@ export default function HomeScreen({ navigation }) {
               </View>
               <Text style={styles.progressText}>{progressPercentage}%</Text>
             </View>
-
             <Text style={styles.exploreText}>
               Explora el catálogo para tu gran día
             </Text>
           </View>
-
           {/* Categories */}
           <View style={styles.categoriesSection}>
             <ScrollView
@@ -207,25 +193,41 @@ export default function HomeScreen({ navigation }) {
               ))}
             </ScrollView>
           </View>
-
           {/* Próximas Tareas */}
           <View style={styles.tasksSection}>
             <Text style={styles.sectionTitle}>Tareas próximas</Text>
-            {tasks.map((task) => (
-              <TouchableOpacity
-                key={task.id}
-                style={[styles.taskCard, { backgroundColor: task.color }]}
-              >
-                <View style={styles.taskDot} />
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle} numberOfLines={2}>{task.title}</Text>
-                  <Text style={styles.taskSubtitle} numberOfLines={1}>{task.subtitle}</Text>
+            {tasks.length === 0 ? (
+              <Text style={{ color: '#999', marginTop: 8 }}>No hay tareas próximas</Text>
+            ) : (
+              tasks.map((task, idx) => (
+                <View
+                  key={task.id || idx}
+                  style={{
+                    backgroundColor: '#F5F6FA',
+                    borderRadius: 12,
+                    padding: 12,
+                    marginBottom: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.07,
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }}
+                >
+                  {task.urgente && (
+                    <Text style={{ color: '#E53935', fontSize: 22, marginRight: 8, marginTop: -2 }}>●</Text>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontWeight: '600', fontSize: 16, color: '#222' }}>{task.titulo || task.title}</Text>
+                    <Text style={{ color: '#888', fontSize: 14 }}>{task.dueDate ? formatDate(task.dueDate) : 'Sin fecha'}</Text>
+                  </View>
                 </View>
-              </TouchableOpacity>
-            ))}
+              ))
+            )}
           </View>
         </ScrollView>
-
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem}>
