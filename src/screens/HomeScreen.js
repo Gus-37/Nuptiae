@@ -1,6 +1,21 @@
-// Formatea fecha tipo YYYY-MM-DD o YYYY/MM/DD a dd/mm/yyyy
+// Formatea fecha tipo YYYY-MM-DD o YYYY/MM/DD o timestamp a dd/mm/yyyy
 function formatDate(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return '';
+  if (!dateStr) return '';
+  
+  // Si es número (timestamp), convertir a Date
+  if (typeof dateStr === 'number') {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Si no es string, intentar convertir
+  if (typeof dateStr !== 'string') {
+    dateStr = String(dateStr);
+  }
+  
   let d = dateStr.replace(/\//g, '-');
   if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
     const [y, m, d2] = d.split('-');
@@ -8,7 +23,8 @@ function formatDate(dateStr) {
   }
   if (/^\d{4}-\d{2}-\d{1,2}$/.test(d)) {
     const [y, m, d2] = d.split('-');
-    return `${d2}/${m}/${y}`;
+    const day = d2.padStart(2, '0');
+    return `${day}/${m}/${y}`;
   }
   if (/^\d{4}\d{2}\d{2}$/.test(d)) {
     return `${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
@@ -109,9 +125,9 @@ export default function HomeScreen({ navigation }) {
   };
   const categories = [
     { id: 1, name: "Vestidos", icon: "👗", color: "#FFE5E5" },
-    { id: 2, name: "Iglesias", icon: "⛪", color: "#FFE5F5" },
-    { id: 3, name: "Comida", icon: "🍽️", color: "#FFF5E5" },
-    { id: 4, name: "Zapatos", icon: "👠", color: "#E5F5E5" },
+    { id: 2, name: "Catedrales", icon: "🏰", color: "#E8E5FF" },
+    { id: 3, name: "Fotografía", icon: "📷", color: "#E5F5FF" },
+    { id: 4, name: "Playas", icon: "🏖️", color: "#E5FFF5" },
   ];
 
   // Estado para tareas próximas
@@ -184,6 +200,12 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => {
                     if (category.name === "Vestidos") {
                       navigation.navigate("Vestidos");
+                    } else if (category.name === "Catedrales") {
+                      navigation.navigate("Catedrales");
+                    } else if (category.name === "Fotografía") {
+                      navigation.navigate("Fotografia");
+                    } else if (category.name === "Playas") {
+                      navigation.navigate("Playas");
                     }
                   }}
                 >
@@ -202,26 +224,14 @@ export default function HomeScreen({ navigation }) {
               tasks.map((task, idx) => (
                 <View
                   key={task.id || idx}
-                  style={{
-                    backgroundColor: '#F5F6FA',
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.07,
-                    shadowRadius: 3,
-                    elevation: 1,
-                  }}
+                  style={[styles.taskCard, styles.taskCardSoftPink]}
                 >
-                  {task.urgente && (
-                    <Text style={{ color: '#E53935', fontSize: 22, marginRight: 8, marginTop: -2 }}>●</Text>
-                  )}
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontWeight: '600', fontSize: 16, color: '#222' }}>{task.titulo || task.title}</Text>
-                    <Text style={{ color: '#888', fontSize: 14 }}>{task.dueDate ? formatDate(task.dueDate) : 'Sin fecha'}</Text>
+                  <View style={[styles.taskDot, task.urgente ? styles.taskDotUrgent : null]} />
+                  <View style={styles.taskContent}>
+                    <Text style={styles.taskTitle}>{task.titulo || task.title}</Text>
+                    <Text style={styles.taskSubtitle}>
+                      Fecha límite: {task.dueDate ? formatDate(task.dueDate) : 'Sin fecha'}
+                    </Text>
                   </View>
                 </View>
               ))
@@ -364,8 +374,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  taskCardSoftPink: {
+    backgroundColor: '#ffe5e5',
   },
   taskDot: {
     width: 10,
@@ -374,17 +392,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#ff6b6b",
     marginRight: 12,
   },
+  taskDotUrgent: { backgroundColor: '#E53935' },
   taskContent: {
     flex: 1,
   },
   taskTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#333",
+    color: "#222",
     marginBottom: 4,
   },
   taskSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#666",
   },
   bottomNav: {
