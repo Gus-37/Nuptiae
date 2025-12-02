@@ -10,9 +10,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Check } from "lucide-react-native";
 import { useUISettings } from "../context/UISettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function IdiomaScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { language, changeLanguage, t } = useLanguage();
 
   const languages = [
     { id: 1, name: "Español", code: "es" },
@@ -29,7 +31,7 @@ export default function IdiomaScreen({ navigation }) {
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
-            Idioma
+            {t('language')}
           </Text>
           <View style={{ width: 24 }} />
         </View>
@@ -37,7 +39,7 @@ export default function IdiomaScreen({ navigation }) {
         <ScrollView style={styles.content}>
           <View style={styles.section}>
             {languages.map((lang) => {
-              const selected = false; // Por ahora solo español está disponible
+              const selected = language === lang.code;
               return (
                 <TouchableOpacity
                   key={lang.id}
@@ -46,18 +48,18 @@ export default function IdiomaScreen({ navigation }) {
                     { backgroundColor: colors.card, borderColor: colors.border },
                     selected && { backgroundColor: colors.accent, borderColor: colors.accent },
                   ]}
-                  disabled={lang.code !== 'es'}
+                  onPress={() => changeLanguage(lang.code)}
                 >
                   <Text
                     style={[
                       styles.languageText,
                       { color: colors.text, fontSize: 16 * fontScale },
                       selected && styles.languageTextSelected,
-                      lang.code !== 'es' && { color: colors.muted },
                     ]}
                   >
                     {lang.name}
                   </Text>
+                  {selected && <Check size={20} color="#fff" />}
                 </TouchableOpacity>
               );
             })}

@@ -17,10 +17,12 @@ import { getUserData, logoutUser } from '../services/authService';
 import { getSharedAccountInfo } from '../services/accountService';
 import { auth } from '../config/firebaseConfig';
 import { useUISettings } from '../context/UISettingsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { CommonActions } from '@react-navigation/native';
 
 export default function CuentasScreen({ navigation }) {
   const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [accountCode, setAccountCode] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -135,12 +137,12 @@ export default function CuentasScreen({ navigation }) {
   };
 
   const menuOptions = [
-    { id: 1, icon: User, label: 'Editar Perfil', description: 'Actualiza tu información personal', color: colors.accent },
-    { id: 2, icon: Bell, label: 'Notificaciones', description: 'Gestiona tus alertas', color: colors.text },
-    { id: 3, icon: Activity, label: 'Actividad Reciente', description: 'Revisa tu historial', color: colors.text },
-    { id: 4, icon: Globe, label: 'Idioma y Región', description: 'Cambia tu idioma', color: colors.text },
-    { id: 5, icon: Monitor, label: 'Configuración de Pantalla', description: 'Ajusta tema y tamaño', color: colors.text },
-    { id: 6, icon: LogOut, label: 'Cerrar Sesión', description: 'Salir de tu cuenta', color: colors.accent },
+    { id: 1, icon: User, label: t('editProfile'), description: t('editProfileDesc'), color: colors.accent },
+    { id: 2, icon: Bell, label: t('notifications'), description: t('notificationsDesc'), color: colors.text },
+    { id: 3, icon: Activity, label: t('recentActivity'), description: t('recentActivityDesc'), color: colors.text },
+    { id: 4, icon: Globe, label: t('languageRegion'), description: t('languageRegionDesc'), color: colors.text },
+    { id: 5, icon: Monitor, label: t('displaySettings'), description: t('displaySettingsDesc'), color: colors.text },
+    { id: 6, icon: LogOut, label: t('logout'), description: t('logoutDesc'), color: colors.accent },
   ];
 
   const handleMenuPress = (id) => {
@@ -162,7 +164,7 @@ export default function CuentasScreen({ navigation }) {
             <TouchableOpacity onPress={() => setSelectedAccount(null)}>
               <ArrowLeft size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Cuenta</Text>
+            <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>{t('account')}</Text>
             <View style={{ width: 24 }} />
           </View>
 
@@ -228,7 +230,7 @@ export default function CuentasScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Configuración de Cuenta</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>{t('accountConfiguration')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -249,8 +251,8 @@ export default function CuentasScreen({ navigation }) {
                       <Copy size={20} color={colors.accent} />
                     </TouchableOpacity>
                   </View>
-                  <Text style={[styles.accountLabel, { color: colors.muted }]}>Código de cuenta</Text>
-                  <Text style={[styles.accountHint, { color: colors.muted }]}>Comparte este código con otros miembros</Text>
+                  <Text style={[styles.accountLabel, { color: colors.muted }]}>{t('accountCode')}</Text>
+                  <Text style={[styles.accountHint, { color: colors.muted }]}>{t('shareCode')}</Text>
                 </View>
               </View>
             )}

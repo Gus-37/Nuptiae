@@ -154,6 +154,7 @@ export const getSharedAccountInfo = async (accountCode) => {
       success: true,
       account: {
         code: accountCode,
+        createdBy: accountData.createdBy,
         createdAt: accountData.createdAt,
         members: memberDetails
       }

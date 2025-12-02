@@ -14,7 +14,8 @@ import { ChevronLeft, User, Bell, Languages, Monitor, Users, Copy } from 'lucide
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { getUserData } from '../services/authService';
 import { getSharedAccountInfo } from '../services/accountService';
-import { auth } from '../config/firebaseConfig';
+import { auth, database } from '../config/firebaseConfig';
+import { ref, get } from 'firebase/database';
 import { useUISettings } from '../context/UISettingsContext';
 
 export default function ProfileScreen() {
@@ -30,6 +31,8 @@ export default function ProfileScreen() {
   const [activeMenu, setActiveMenu] = useState('perfil');
   const [accountCode, setAccountCode] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [daysUntilWedding, setDaysUntilWedding] = useState(90);
+  const [progressPercentage, setProgressPercentage] = useState(70);
 
   useEffect(() => {
     loadUserData();
@@ -67,6 +70,78 @@ export default function ProfileScreen() {
             const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
             if (accountInfo.success) {
               setAccountCode(accountInfo.account.code);
+              
+              // Obtener fecha de boda y progreso del creador de la cuenta
+              const creatorId = accountInfo.account.createdBy;
+              if (creatorId) {
+                // Si el usuario actual ES el creador, usar sus propios datos
+                if (creatorId === currentUser.uid) {
+                  console.log('Usuario es el creador, usando datos propios');
+                  if (userData.data.weddingDate) {
+                    const wedding = new Date(userData.data.weddingDate);
+                    const today = new Date();
+                    const diffTime = wedding - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+                    
+                    console.log('Días hasta la boda:', diffDays > 0 ? diffDays : 0);
+                    
+                    if (userData.data.createdAt) {
+                      const startDate = new Date(userData.data.createdAt);
+                      const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                      const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                      const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                      setProgressPercentage(Math.round(progress));
+                    }
+                  }
+                } else {
+                  // Si NO es el creador, obtener datos del creador
+                  console.log('Usuario no es creador, obteniendo datos del creador');
+                  const creatorDataSnapshot = await get(ref(database, `users/${creatorId}`));
+                  if (creatorDataSnapshot.exists()) {
+                    const creatorData = creatorDataSnapshot.val();
+                    
+                    console.log('Datos del creador:', JSON.stringify(creatorData, null, 2));
+                    
+                    // Usar la fecha de boda del creador
+                    if (creatorData.weddingDate) {
+                      const wedding = new Date(creatorData.weddingDate);
+                      const today = new Date();
+                      const diffTime = wedding - today;
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+                      
+                      console.log('Días hasta la boda:', diffDays > 0 ? diffDays : 0);
+                      
+                      // Calcular progreso basado en la fecha de creación del creador
+                      if (creatorData.createdAt) {
+                        const startDate = new Date(creatorData.createdAt);
+                        const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                        const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                        const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                        setProgressPercentage(Math.round(progress));
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            // Si no hay cuenta compartida, usar datos propios
+            if (userData.data.weddingDate) {
+              const wedding = new Date(userData.data.weddingDate);
+              const today = new Date();
+              const diffTime = wedding - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+              
+              if (userData.data.createdAt) {
+                const startDate = new Date(userData.data.createdAt);
+                const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                setProgressPercentage(Math.round(progress));
+              }
             }
           }
         }
@@ -182,6 +257,33 @@ export default function ProfileScreen() {
             </Avatar>
             <Text fontSize={24} fontWeight="600" color={colors.text}>{userName}</Text>
             <Text fontSize={16} color={colors.muted} mt={4}>{userRole}</Text>
+            
+            {/* Días para la boda */}
+            <Box mt={16} alignItems="center">
+              <Text fontSize={14} color={colors.muted} mb={4}>Días para tu boda</Text>
+              <Text fontSize={32} fontWeight="700" color={colors.accent}>{daysUntilWedding}</Text>
+            </Box>
+            
+            {/* Progress Bar */}
+            <Box width="80%" mt={16}>
+              <HStack justifyContent="space-between" mb={8}>
+                <Text fontSize={12} color={colors.muted}>Progreso de planificación</Text>
+                <Text fontSize={12} fontWeight="600" color={colors.text}>{progressPercentage}%</Text>
+              </HStack>
+              <Box 
+                width="100%" 
+                height={8} 
+                borderRadius={4} 
+                bg={theme === 'light' ? '#f0f0f0' : '#2A2A2A'}
+              >
+                <Box 
+                  width={`${progressPercentage}%`} 
+                  height="100%" 
+                  borderRadius={4} 
+                  bg={colors.accent}
+                />
+              </Box>
+            </Box>
           </VStack>
 
           {/* Código de Cuenta Compartida */}

@@ -45,14 +45,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Menu, Users, ShoppingCart, Calendar, Home } from "lucide-react-native";
 import { useUISettings } from '../context/UISettingsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { auth, database } from "../config/firebaseConfig";
 import { getUserData } from "../services/authService";
 import { getSharedAccountInfo } from "../services/accountService";
-import { ref, update, onValue } from 'firebase/database';
+import { ref, update, onValue, get } from 'firebase/database';
 import { databaseAgendas } from '../config/firebaseAgendas';
 
 export default function HomeScreen({ navigation }) {
+  console.log('🏠 HomeScreen montado');
   const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const [loading, setLoading] = useState(true);
@@ -61,18 +64,21 @@ export default function HomeScreen({ navigation }) {
   const [weddingDate, setWeddingDate] = useState(null);
   const [progressPercentage, setProgressPercentage] = useState(70);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
   const loadUserData = async () => {
     try {
+      console.log('========== INICIANDO loadUserData en HomeScreen ==========');
       const currentUser = auth.currentUser;
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('❌ No hay usuario autenticado');
+        return;
+      }
 
       const userData = await getUserData(currentUser.uid);
 
       if (userData.success) {
+        console.log('Cuenta del usuario actual:', JSON.stringify(userData.data, null, 2));
+        console.log('Código de cuenta compartida:', userData.data.sharedAccountCode);
+        
         // Obtener información de cuenta compartida si existe
         if (userData.data.sharedAccountCode) {
           const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
@@ -100,31 +106,111 @@ export default function HomeScreen({ navigation }) {
               const name = members[0].name || currentUser.displayName || 'Usuario';
               setCoupleNames(name);
             }
+
+            // Obtener fecha de boda del creador de la cuenta compartida
+            const creatorId = accountInfo.account.createdBy;
+            if (creatorId) {
+                // Si el usuario actual ES el creador, usar sus propios datos
+                if (creatorId === currentUser.uid) {
+                  console.log('Usuario es el creador, usando datos propios');
+                  if (userData.data.weddingDate) {
+                    console.log('Usando fecha de boda propia:', userData.data.weddingDate);
+                  const wedding = new Date(userData.data.weddingDate);
+                  setWeddingDate(wedding);
+                  const today = new Date();
+                  const diffTime = wedding - today;
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+                  console.log('Días hasta la boda:', diffDays > 0 ? diffDays : 0);
+                  
+                  if (userData.data.createdAt) {
+                    const startDate = new Date(userData.data.createdAt);
+                    const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                    const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                    const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                    setProgressPercentage(Math.round(progress));
+                    console.log('Porcentaje de progreso:', Math.round(progress));
+                  }
+                }
+                } else {
+                  // Si NO es el creador, obtener datos del creador
+                  console.log('Usuario no es creador, obteniendo datos del creador');
+                const creatorDataSnapshot = await get(ref(database, `users/${creatorId}`));
+                if (creatorDataSnapshot.exists()) {
+                  const creatorData = creatorDataSnapshot.val();
+                  
+                    // Usar la fecha de boda y datos del creador
+                    if (creatorData.weddingDate) {
+                      console.log('Usando fecha de boda del creador:', creatorData.weddingDate);
+                    const wedding = new Date(creatorData.weddingDate);
+                    setWeddingDate(wedding);
+                    const today = new Date();
+                    const diffTime = wedding - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+                    console.log('Días hasta la boda:', diffDays > 0 ? diffDays : 0);
+                    
+                    if (creatorData.createdAt) {
+                      const startDate = new Date(creatorData.createdAt);
+                      const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                      const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                      const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                      setProgressPercentage(Math.round(progress));
+                      console.log('Porcentaje de progreso:', Math.round(progress));
+                    }
+                  }
+                }
+              }
+            }
           } else {
             // Tiene código pero no se pudo obtener info de cuenta
             const name = userData.data.name || currentUser.displayName || 'Usuario';
             setCoupleNames(name);
+            
+            // Calcular con datos propios si no hay cuenta compartida válida
+            if (userData.data.weddingDate) {
+              console.log('Usando fecha de boda propia (sin cuenta compartida):', userData.data.weddingDate);
+              const wedding = new Date(userData.data.weddingDate);
+              setWeddingDate(wedding);
+              const today = new Date();
+              const diffTime = wedding - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+              console.log('Días hasta la boda (propios):', diffDays > 0 ? diffDays : 0);
+              if (userData.data.createdAt) {
+                const startDate = new Date(userData.data.createdAt);
+                const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+                const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+                setProgressPercentage(Math.round(progress));
+                console.log('Porcentaje de progreso (propios):', Math.round(progress));
+              }
+            }
           }
         } else {
           // Usuario sin cuenta compartida
+          console.log('Usuario sin cuenta compartida');
           const name = userData.data.name || currentUser.displayName || 'Usuario';
           setCoupleNames(name);
-        }
-        
-        // Calcular días hasta la boda y progreso
-        if (userData.data.weddingDate) {
-          const wedding = new Date(userData.data.weddingDate);
-          setWeddingDate(wedding);
-          const today = new Date();
-          const diffTime = wedding - today;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
-          if (userData.data.createdAt) {
-            const startDate = new Date(userData.data.createdAt);
-            const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
-            const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-            const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
-            setProgressPercentage(Math.round(progress));
+          
+          // Calcular días hasta la boda y progreso
+          if (userData.data.weddingDate) {
+            console.log('Usando fecha de boda propia:', userData.data.weddingDate);
+            const wedding = new Date(userData.data.weddingDate);
+            setWeddingDate(wedding);
+            const today = new Date();
+            const diffTime = wedding - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDaysUntilWedding(diffDays > 0 ? diffDays : 0);
+            console.log('Días hasta la boda:', diffDays > 0 ? diffDays : 0);
+            if (userData.data.createdAt) {
+              const startDate = new Date(userData.data.createdAt);
+              const totalDays = Math.ceil((wedding - startDate) / (1000 * 60 * 60 * 24));
+              const daysElapsed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+              const progress = Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100);
+              setProgressPercentage(Math.round(progress));
+              console.log('Porcentaje de progreso:', Math.round(progress));
+            }
           }
         }
       }
@@ -134,6 +220,16 @@ export default function HomeScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('🔄 useEffect ejecutándose, llamando loadUserData');
+    try {
+      loadUserData();
+    } catch (error) {
+      console.error('❌ Error en useEffect:', error);
+    }
+  }, []);
+
   const categories = [
     { id: 1, name: "Vestidos", icon: "👗", color: "#FFE5E5" },
     { id: 2, name: "Catedrales", icon: "🏰", color: "#E8E5FF" },
@@ -181,9 +277,9 @@ export default function HomeScreen({ navigation }) {
               <ActivityIndicator size="large" color={colors.accent} style={{ marginVertical: 20 }} />
             ) : (
               <>
-                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 28 * fontScale }]} numberOfLines={1}>¡Bienvenidos</Text>
+                <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 28 * fontScale }]} numberOfLines={1}>{t('welcomePrefix')}</Text>
                 <Text style={[styles.welcomeTitle, { color: colors.text, fontSize: 28 * fontScale }]} numberOfLines={2}>{coupleNames}!</Text>
-                <Text style={[styles.countdown, { color: colors.muted, fontSize: 16 * fontScale }]} numberOfLines={1}>{daysUntilWedding} días para tu boda</Text>
+                <Text style={[styles.countdown, { color: colors.muted, fontSize: 16 * fontScale }]} numberOfLines={1}>{t('daysUntilWedding', daysUntilWedding)}</Text>
               </>
             )}
             {/* Progress Bar */}
@@ -196,7 +292,7 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </View>
             <Text style={[styles.exploreText, { color: colors.muted, fontSize: 14 * fontScale }]}>
-              Explora el catálogo para tu gran día
+              {t('explore')}
             </Text>
           </View>
           {/* Categories */}
@@ -230,9 +326,9 @@ export default function HomeScreen({ navigation }) {
           </View>
           {/* Próximas Tareas */}
           <View style={styles.tasksSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 16 * fontScale }]}>Tareas próximas</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 16 * fontScale }]}>{t('upcomingTasks')}</Text>
             {tasks.length === 0 ? (
-              <Text style={{ color: colors.muted, marginTop: 8, fontSize: 14 * fontScale }}>No hay tareas próximas</Text>
+              <Text style={{ color: colors.muted, marginTop: 8, fontSize: 14 * fontScale }}>{t('noUpcomingTasks')}</Text>
             ) : (
               tasks.map((task, idx) => (
                 <View
@@ -243,7 +339,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.taskContent}>
                     <Text style={[styles.taskTitle, { color: colors.text, fontSize: 16 * fontScale }]}>{task.titulo || task.title}</Text>
                     <Text style={[styles.taskSubtitle, { color: colors.muted, fontSize: 14 * fontScale }]}>
-                      Fecha límite: {task.dueDate ? formatDate(task.dueDate) : 'Sin fecha'}
+                      {t('dueDate')}: {task.dueDate ? formatDate(task.dueDate) : t('noDate')}
                     </Text>
                   </View>
                 </View>
