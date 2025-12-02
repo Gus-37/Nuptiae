@@ -1,4 +1,5 @@
 import React from "react";
+import { useUISettings } from '../context/UISettingsContext';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SplashScreen from "../screens/SplashScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -21,20 +22,19 @@ import CatedralesScreen from "../screens/CatedralesScreen";
 import HotelesScreen from "../screens/HotelesScreen";
 import PlayasScreen from "../screens/PlayasScreen";
 import AccesoriosPersonalizadosScreen from "../screens/AccesoriosPersonalizadosScreen";
+import PantallaScreen from "../screens/PantallaScreen";
 
 // Profile Stack Screens
 import ProfileDetailScreen from "../screens/ProfileDetailScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
-import LanguageScreen from "../screens/LanguageScreen";
-import DisplayScreen from "../screens/DisplayScreen";
+import ActivityScreen from "../screens/ActivityScreen";
+import IdiomaScreen from "../screens/IdiomaScreen";
 import SharedAccountScreen from "../screens/SharedAccountScreen";
+import ProfileEditScreen from "../screens/ProfileEditScreen";
 
 // Tareas Stack Screens
 import AddTareaScreen from "../screens/AddTareaScreen";
 import AddPreparativoScreen from "../screens/AddPreparativoScreen";
-
-// Invitados Stack Screens
-import AddInvitadoScreen from "../screens/AddInvitadoScreen";
 
 // Agenda Stack Screens
 import AddItinerarioScreen from "../screens/AddItinerarioScreen";
@@ -44,12 +44,14 @@ import ItinerarioScreen from "../screens/ItinerarioScreen";
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  const { colors } = useUISettings();
   return (
     <Stack.Navigator
       initialRouteName="Splash"
       screenOptions={{ 
         headerShown: false,
-        animation: 'slide_from_right'
+        animation: 'slide_from_right',
+        contentStyle: { backgroundColor: colors.bg }
       }}
     >
       {/* Auth Screens */}
@@ -70,6 +72,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Fotografia" component={FotografiaScreen} />
       <Stack.Screen name="Video" component={VideoScreen} />
       <Stack.Screen name="Promociones" component={PromocionesScreen} />
+      <Stack.Screen name="Pantalla" component={PantallaScreen} options={{ headerShown: false }} />
       
       {/* Product Detail Screen */}
       <Stack.Screen 
@@ -98,7 +101,12 @@ export default function AppNavigator() {
       <Stack.Screen 
         name="Notifications" 
         component={NotificationsScreen}
-        options={{ animation: 'slide_from_right' }}
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="Activity" 
+        component={ActivityScreen}
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
         name="SharedAccount" 
@@ -107,13 +115,13 @@ export default function AppNavigator() {
       />
       <Stack.Screen 
         name="Language" 
-        component={LanguageScreen}
-        options={{ animation: 'slide_from_right' }}
+        component={IdiomaScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="DisplayScreen" 
-        component={DisplayScreen}
-        options={{ animation: 'slide_from_right' }}
+        name="ProfileEdit" 
+        component={ProfileEditScreen}
+        options={{ headerShown: false }} 
       />
       
       {/* Tareas Stack Screens */}
@@ -137,14 +145,7 @@ export default function AppNavigator() {
       />
       
       {/* Invitados Stack Screens */}
-      <Stack.Screen 
-        name="AddInvitado" 
-        component={AddInvitadoScreen}
-        options={{ 
-          animation: 'slide_from_bottom',
-          presentation: 'modal'
-        }}
-      />
+      {/* AddInvitadoScreen removido temporalmente porque no existe el componente */}
       
       {/* Agenda Stack Screens */}
       <Stack.Screen 

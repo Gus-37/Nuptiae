@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Alert, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function RegisterStep1() {
+  const { colors, fontScale, theme } = useUISettings();
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState(new Date());
@@ -55,24 +57,24 @@ export default function RegisterStep1() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registro de datos personales</Text>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <Text style={[styles.title, { color: colors.text, fontSize: 24 * fontScale }]}>Registro de datos personales</Text>
 
-      <Text style={styles.label}>Nombre</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Nombre</Text>
       <TextInput
         placeholder="Ingresa tu nombre"
         value={name}
         onChangeText={setName}
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
       />
 
-      <Text style={styles.label}>Fecha de nacimiento</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Fecha de nacimiento</Text>
       <TouchableOpacity 
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border }]}
         onPress={() => setShowDatePicker(true)}
       >
-        <Text style={styles.dateText}>{formatDate(birthDate)}</Text>
+        <Text style={[styles.dateText, { color: colors.text, fontSize: 16 * fontScale }]}>{formatDate(birthDate)}</Text>
       </TouchableOpacity>
       
       {showDatePicker && (
@@ -85,12 +87,12 @@ export default function RegisterStep1() {
         />
       )}
 
-      <Text style={styles.label}>Género</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Género</Text>
       <TouchableOpacity 
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border }]}
         onPress={() => setShowGenderPicker(true)}
       >
-        <Text style={[styles.dateText, !gender && styles.placeholder]}>
+        <Text style={[styles.dateText, { color: gender ? colors.text : colors.muted, fontSize: 16 * fontScale }, !gender && styles.placeholder]}>
           {gender || "Selecciona tu género"}
         </Text>
       </TouchableOpacity>
@@ -106,65 +108,65 @@ export default function RegisterStep1() {
           activeOpacity={1}
           onPress={() => setShowGenderPicker(false)}
         >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Selecciona tu género</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Selecciona tu género</Text>
             <TouchableOpacity
-              style={styles.modalOption}
+              style={[styles.modalOption, { borderBottomColor: colors.border }]}
               onPress={() => {
                 setGender('Masculino');
                 setShowGenderPicker(false);
               }}
             >
-              <Text style={styles.modalOptionText}>🤵 Masculino</Text>
+              <Text style={[styles.modalOptionText, { color: colors.text, fontSize: 16 * fontScale }]}>🤵 Masculino</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.modalOption}
+              style={[styles.modalOption, { borderBottomColor: colors.border }]}
               onPress={() => {
                 setGender('Femenino');
                 setShowGenderPicker(false);
               }}
             >
-              <Text style={styles.modalOptionText}>👰 Femenino</Text>
+              <Text style={[styles.modalOptionText, { color: colors.text, fontSize: 16 * fontScale }]}>👰 Femenino</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalCancel}
               onPress={() => setShowGenderPicker(false)}
             >
-              <Text style={styles.modalCancelText}>Cancelar</Text>
+              <Text style={[styles.modalCancelText, { color: colors.accent, fontSize: 16 * fontScale }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
 
-      <Text style={styles.label}>Número celular</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Número celular</Text>
       <TextInput
         placeholder="Ingresa tu número de teléfono"
         value={phone}
         onChangeText={setPhone}
         keyboardType="phone-pad"
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
       />
 
-      <Text style={styles.label}>Código de cuenta duo (opcional)</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Código de cuenta duo (opcional)</Text>
       <TextInput
         placeholder="Ingresa el código si tu pareja ya se registró"
         value={accountCode}
         onChangeText={setAccountCode}
         keyboardType="number-pad"
         maxLength={6}
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
       />
-      <Text style={styles.hintText}>
+      <Text style={[styles.hintText, { color: colors.muted, fontSize: 12 * fontScale }]}>
         Si tienes un código de tu pareja, ingrésalo aquí. Si no, déjalo vacío.
       </Text>
 
       <TouchableOpacity
-        style={styles.primaryButton}
+        style={[styles.primaryButton, { backgroundColor: colors.accent }]}
         onPress={handleNext}
       >
-        <Text style={styles.primaryButtonText}>Siguiente</Text>
+        <Text style={[styles.primaryButtonText, { fontSize: 16 * fontScale }]}>Siguiente</Text>
       </TouchableOpacity>
     </View>
   );
@@ -173,57 +175,45 @@ export default function RegisterStep1() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingHorizontal: 24,
     paddingTop: 40,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 32,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 20,
     fontSize: 16,
-    backgroundColor: "#fafafa",
     justifyContent: "center",
   },
   dateText: {
     fontSize: 16,
-    color: "#333",
   },
-  placeholder: {
-    color: "#999",
+  hintText: {
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 20,
   },
   primaryButton: {
-    backgroundColor: "#ff6b6b",
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 16,
   },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
-  },
-  hintText: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: -12,
-    marginBottom: 20,
   },
   modalOverlay: {
     flex: 1,
@@ -232,37 +222,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
     width: '80%',
     maxWidth: 300,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
   modalOption: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalOptionText: {
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'center',
   },
   modalCancel: {
     marginTop: 12,
     paddingVertical: 12,
-  },
-  modalCancelText: {
-    fontSize: 16,
-    color: '#ff6b6b',
-    textAlign: 'center',
-    fontWeight: '600',
   },
 });

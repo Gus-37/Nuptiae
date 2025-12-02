@@ -12,12 +12,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Menu, Users, ArrowLeft, ChevronRight, User, Lock, Activity, Globe, Monitor, Home, ShoppingCart, Calendar, Copy, LogOut } from "lucide-react-native";
+import { Menu, Users, ArrowLeft, ChevronRight, User, Bell, Activity, Globe, Monitor, Home, ShoppingCart, Calendar, Copy, LogOut } from "lucide-react-native";
 import { getUserData, logoutUser } from '../services/authService';
 import { getSharedAccountInfo } from '../services/accountService';
 import { auth } from '../config/firebaseConfig';
+import { useUISettings } from '../context/UISettingsContext';
+import { CommonActions } from '@react-navigation/native';
 
 export default function CuentasScreen({ navigation }) {
+  const { colors, fontScale, theme } = useUISettings();
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [accountCode, setAccountCode] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -48,7 +51,6 @@ export default function CuentasScreen({ navigation }) {
         if (accountInfo.success) {
           setAccountCode(accountInfo.account.code);
           
-          // Filtrar solo el usuario actual para mostrar en la lista
           const currentUserAccount = accountInfo.account.members.find(
             member => member.uid === currentUser.uid
           );
@@ -107,7 +109,7 @@ export default function CuentasScreen({ navigation }) {
   const handleLogout = async () => {
     Alert.alert(
       'Cerrar Sesión',
-      '¿Estás seguro que deseas cerrar sesión?',
+      '¿Estás seguro de que deseas cerrar sesión?',
       [
         {
           text: 'Cancelar',
@@ -133,31 +135,40 @@ export default function CuentasScreen({ navigation }) {
   };
 
   const menuOptions = [
-    { id: 1, icon: User, label: "Editar Perfil", description: "Nombre, correo, foto de perfil", color: "#ff6b6b" },
-    { id: 2, icon: Lock, label: "Cambiar Contraseña", description: "Actualiza tu contraseña de acceso", color: "#333" },
-    { id: 3, icon: Activity, label: "Actividad Reciente", description: "Historial de acciones en la cuenta", color: "#333" },
-    { id: 4, icon: Globe, label: "Idioma y Región", description: "Español, México", color: "#333" },
-    { id: 5, icon: Monitor, label: "Configuración de Pantalla", description: "Tema, notificaciones, privacidad", color: "#333" },
-    { id: 6, icon: LogOut, label: "Cerrar Sesión", description: "Salir de tu cuenta", color: "#ff6b6b" },
+    { id: 1, icon: User, label: 'Editar Perfil', description: 'Actualiza tu información personal', color: colors.accent },
+    { id: 2, icon: Bell, label: 'Notificaciones', description: 'Gestiona tus alertas', color: colors.text },
+    { id: 3, icon: Activity, label: 'Actividad Reciente', description: 'Revisa tu historial', color: colors.text },
+    { id: 4, icon: Globe, label: 'Idioma y Región', description: 'Cambia tu idioma', color: colors.text },
+    { id: 5, icon: Monitor, label: 'Configuración de Pantalla', description: 'Ajusta tema y tamaño', color: colors.text },
+    { id: 6, icon: LogOut, label: 'Cerrar Sesión', description: 'Salir de tu cuenta', color: colors.accent },
   ];
+
+  const handleMenuPress = (id) => {
+    if (id === 1) navigation.navigate('ProfileEdit');
+    else if (id === 2) navigation.navigate('Notifications');
+    else if (id === 3) navigation.navigate('Activity');
+    else if (id === 4) navigation.navigate('Language');
+    else if (id === 5) navigation.navigate('Pantalla');
+    else if (id === 6) handleLogout();
+  };
 
   if (selectedAccount) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-        <View style={styles.container}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+        <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+        <View style={[styles.container, { backgroundColor: colors.bg }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={() => setSelectedAccount(null)}>
-              <ArrowLeft size={24} color="#333" />
+              <ArrowLeft size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Cuenta</Text>
+            <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Cuenta</Text>
             <View style={{ width: 24 }} />
           </View>
 
           <ScrollView style={styles.content}>
             <View style={styles.profileSection}>
-              <View style={styles.avatarContainer}>
+              <View style={[styles.avatarContainer, { backgroundColor: theme === 'light' ? '#f0f0f0' : '#2A2A2A' }]}>
                 <Text style={styles.avatarLarge}>{selectedAccount.avatar}</Text>
               </View>
               <Text style={styles.profileName} numberOfLines={2}>{selectedAccount.name}</Text>
@@ -166,53 +177,41 @@ export default function CuentasScreen({ navigation }) {
 
             <View style={styles.menuSection}>
               {menuOptions.map((option) => {
-                const IconComponent = option.icon;
+                const IconComponent = option.icon && typeof option.icon === 'function' ? option.icon : User;
                 return (
                   <TouchableOpacity 
                     key={option.id} 
-                    style={styles.menuItem}
-                    onPress={() => {
-                      if (option.id === 4) {
-                        navigation.navigate("Idioma");
-                      } else if (option.id === 5) {
-                        navigation.navigate("Pantalla");
-                      } else if (option.id === 6) {
-                        handleLogout();
-                      }
-                    }}
+                    style={[styles.menuItem, { borderBottomColor: colors.border }]}
+                    onPress={() => handleMenuPress(option.id)} // << usar el manejador común
                   >
                     <View style={styles.menuItemLeft}>
-                      <View style={[styles.iconCircle, (option.id === 1 || option.id === 6) && styles.iconCircleHighlight]}>
+                      <View style={[styles.iconCircle, { backgroundColor: theme === 'light' ? '#f5f5f5' : '#2A2A2A' }]}>
                         <IconComponent size={20} color={option.color} />
                       </View>
                       <View style={styles.menuItemTextContainer}>
-                        <Text style={styles.menuItemText}>{option.label}</Text>
-                        <Text style={styles.menuItemDescription}>{option.description}</Text>
+                        <Text style={[styles.menuItemText, { color: colors.text, fontSize: 16 * fontScale }]}>{option.label}</Text>
+                        <Text style={[styles.menuItemDescription, { color: colors.muted, fontSize: 12 * fontScale }]}>{option.description}</Text>
                       </View>
                     </View>
-                    <ChevronRight size={20} color="#999" />
+                    <ChevronRight size={20} color={colors.muted} />
                   </TouchableOpacity>
                 );
               })}
             </View>
           </ScrollView>
 
-          {/* Bottom Navigation */}
-          <View style={styles.bottomNav}>
+          <View style={[styles.bottomNav, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
             <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-              <Home size={24} color="#666" />
+              <Home size={24} color={colors.muted} />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-            >
-              <ShoppingCart size={24} color="#666" />
+            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Costos", { tab: "compras" })}>
+              <ShoppingCart size={24} color={colors.muted} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-              <Calendar size={24} color="#666" />
+              <Calendar size={24} color={colors.muted} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.navItem}>
-              <Users size={24} color="#ff6b6b" />
+              <Users size={24} color={colors.accent} />
             </TouchableOpacity>
           </View>
         </View>
@@ -221,88 +220,101 @@ export default function CuentasScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top","left","right"]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate('Home');
-            }
-          }}>
-            <ArrowLeft size={24} color="#333" />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Configuración de cuentas</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Configuración de Cuenta</Text>
           <View style={{ width: 24 }} />
         </View>
 
+        {/* Content */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ff6b6b" />
+            <ActivityIndicator size="large" color={colors.accent} />
           </View>
         ) : (
           <ScrollView style={styles.content}>
-            <View style={styles.section}>
-              {/* Código de cuenta */}
-              {accountCode && (
+            {/* Código de cuenta */}
+            {accountCode && (
+              <View style={styles.section}>
                 <View style={styles.codeSection}>
                   <View style={styles.codeContainer}>
-                    <Text style={styles.accountNumber}>{accountCode}</Text>
+                    <Text style={[styles.accountNumber, { color: colors.text }]}>{accountCode}</Text>
                     <TouchableOpacity onPress={handleCopyCode} style={styles.copyButton}>
-                      <Copy size={20} color="#ff6b6b" />
+                      <Copy size={20} color={colors.accent} />
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.accountLabel}>Código de cuenta</Text>
-                  <Text style={styles.accountHint}>Comparte este código con tu pareja</Text>
+                  <Text style={[styles.accountLabel, { color: colors.muted }]}>Código de cuenta</Text>
+                  <Text style={[styles.accountHint, { color: colors.muted }]}>Comparte este código con otros miembros</Text>
                 </View>
-              )}
+              </View>
+            )}
 
-              {/* Lista de cuentas */}
-              <View style={styles.accountsContainer}>
-                {accounts.map((account) => (
-                <TouchableOpacity 
-                  key={account.id} 
-                  style={styles.accountCard}
+            {/* Lista de cuentas */}
+            <View style={styles.accountsContainer}>
+              {accounts.map((account) => (
+                <TouchableOpacity
+                  key={account.id}
+                  style={[styles.accountCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                   onPress={() => setSelectedAccount(account)}
                 >
-                  <View style={styles.avatar}>
+                  <View style={[styles.avatar, { backgroundColor: theme === 'light' ? '#f0f0f0' : '#2A2A2A' }]}>
                     <Text style={styles.avatarEmoji}>{account.avatar}</Text>
                   </View>
                   <View style={styles.accountInfo}>
                     <Text style={styles.accountName} numberOfLines={1}>{account.name}</Text>
                     <Text style={styles.accountRole} numberOfLines={1}>{account.role}</Text>
                   </View>
-                  <ChevronRight size={20} color="#999" />
+                  <ChevronRight size={20} color={colors.muted} />
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity style={styles.plannerButton}>
-              <Text style={styles.plannerButtonText}>Planner de boda</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            {/* Menú */}
+            <View style={styles.menuSection}>
+              {menuOptions.map((option) => {
+                const IconComponent = option.icon && typeof option.icon === 'function' ? option.icon : User;
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[styles.menuItem, { borderBottomColor: colors.border }]}
+                    onPress={() => handleMenuPress(option.id)}
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <View style={[styles.iconCircle, { backgroundColor: theme === 'light' ? '#f5f5f5' : '#2A2A2A' }]}>
+                        <IconComponent size={20} color={option.color} />
+                      </View>
+                      <View style={styles.menuItemTextContainer}>
+                        <Text style={[styles.menuItemText, { color: colors.text, fontSize: 16 * fontScale }]}>{option.label}</Text>
+                        <Text style={[styles.menuItemDescription, { color: colors.muted, fontSize: 12 * fontScale }]}>{option.description}</Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={20} color={colors.muted} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
         )}
 
         {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <Home size={24} color="#666" />
+            <Home size={24} color={colors.muted} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-          >
-            <ShoppingCart size={24} color="#666" />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Costos", { tab: "compras" })}>
+            <ShoppingCart size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-            <Calendar size={24} color="#666" />
+            <Calendar size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Users size={24} color="#ff6b6b" />
+            <Users size={24} color={colors.accent} />
           </TouchableOpacity>
         </View>
       </View>

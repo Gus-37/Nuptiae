@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CalendarAgendaScreen from './CalendarAgendaScreen';
 import TareasScreen from './TareasScreen';
 import PreparativosScreen from './PreparativosScreen';
+import { useUISettings } from '../context/UISettingsContext';
 
 export default function AgendaScreen({ navigation }) {
+  const { colors, fontScale, theme } = useUISettings();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [activeTab, setActiveTab] = useState('calendario');
 
   const renderScreen = () => {
@@ -44,9 +48,9 @@ export default function AgendaScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Pestañas horizontales */}
-      <View style={styles.tabsContainer}>
+      <View style={[styles.tabsContainer, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.id}
@@ -59,13 +63,14 @@ export default function AgendaScreen({ navigation }) {
             <Ionicons
               name={tab.icon}
               size={20}
-              color={activeTab === tab.id ? '#ff6b6b' : '#999'}
+              color={activeTab === tab.id ? colors.accent : colors.muted}
               style={styles.tabIcon}
             />
             <Text
               style={[
                 styles.tabLabel,
-                activeTab === tab.id && styles.tabLabelActive,
+                { color: colors.muted, fontSize: 12 * fontScale },
+                activeTab === tab.id && { color: colors.accent, fontWeight: '600' },
               ]}
             >
               {tab.label}
@@ -82,7 +87,7 @@ export default function AgendaScreen({ navigation }) {
       {/* FAB para agregar tarea */}
       {activeTab === 'tareas' && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: colors.accent }]}
           onPress={handleAddTarea}
           activeOpacity={0.8}
         >
@@ -93,7 +98,7 @@ export default function AgendaScreen({ navigation }) {
       {/* FAB para agregar preparativo */}
       {activeTab === 'preparativos' && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: colors.accent }]}
           onPress={handleAddPreparativo}
           activeOpacity={0.8}
         >
@@ -107,13 +112,10 @@ export default function AgendaScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tabButton: {
     flex: 1,
@@ -133,11 +135,6 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#999',
-  },
-  tabLabelActive: {
-    color: '#ff6b6b',
-    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -149,7 +146,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#ff6b6b',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

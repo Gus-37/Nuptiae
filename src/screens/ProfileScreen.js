@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StatusBar, Alert, TouchableOpacity, Share } from 'react-native';
+import { StatusBar, Alert, TouchableOpacity, Share, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   VStack,
@@ -15,8 +15,12 @@ import { useNavigation, useRoute, CommonActions } from '@react-navigation/native
 import { getUserData } from '../services/authService';
 import { getSharedAccountInfo } from '../services/accountService';
 import { auth } from '../config/firebaseConfig';
+import { useUISettings } from '../context/UISettingsContext';
 
 export default function ProfileScreen() {
+  const { colors, fontScale, theme } = useUISettings();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const navigation = useNavigation();
   const route = useRoute();
   const [userName, setUserName] = useState('Usuario');
@@ -161,13 +165,13 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
       <VStack flex={1}>
           {/* Header */}
           <HStack px={16} py={16} alignItems="center">
             <Pressable onPress={() => navigation.goBack()}>
-              <ChevronLeft size={24} color="#999" />
+              <ChevronLeft size={24} color={colors.muted} />
             </Pressable>
           </HStack>
 
@@ -176,16 +180,16 @@ export default function ProfileScreen() {
             <Avatar size="2xl" mb={16} bg={bgColor}>
               {userAvatar && <AvatarImage source={{ uri: userAvatar }} alt={userName} />}
             </Avatar>
-            <Text fontSize={24} fontWeight="600" color="#111">{userName}</Text>
-            <Text fontSize={16} color="#666" mt={4}>{userRole}</Text>
+            <Text fontSize={24} fontWeight="600" color={colors.text}>{userName}</Text>
+            <Text fontSize={16} color={colors.muted} mt={4}>{userRole}</Text>
           </VStack>
 
           {/* Código de Cuenta Compartida */}
           {accountCode && !loading && (
-            <Box mx={16} mb={24} p={16} borderRadius={16} bg="#fff" borderWidth={1} borderColor="#e0e0e0">
+            <Box mx={16} mb={24} p={16} borderRadius={16} bg={colors.card} borderWidth={1} borderColor={colors.border}>
               <HStack alignItems="center" mb={12}>
-                <Users size={20} color="#ff6b6b" />
-                <Text fontSize={14} fontWeight="600" color="#333" ml={8}>
+                <Users size={20} color={colors.accent} />
+                <Text fontSize={14} fontWeight="600" color={colors.text} ml={8}>
                   Código de Cuenta Compartida
                 </Text>
               </HStack>
@@ -194,19 +198,19 @@ export default function ProfileScreen() {
                 justifyContent="space-between"
                 p={12} 
                 borderRadius={12} 
-                bg="#fff5f5"
+                bg={theme === 'light' ? '#fff5f5' : colors.bg}
                 borderWidth={2}
-                borderColor="#ff6b6b"
+                borderColor={colors.accent}
                 borderStyle="dashed"
               >
-                <Text fontSize={28} fontWeight="700" color="#ff6b6b" letterSpacing={4}>
+                <Text fontSize={28} fontWeight="700" color={colors.accent} letterSpacing={4}>
                   {accountCode}
                 </Text>
                 <TouchableOpacity onPress={handleCopyCode}>
-                  <Copy size={20} color="#ff6b6b" />
+                  <Copy size={20} color={colors.accent} />
                 </TouchableOpacity>
               </HStack>
-              <Text fontSize={12} color="#999" mt={8}>
+              <Text fontSize={12} color={colors.muted} mt={8}>
                 Comparte este código con tu pareja para unirse
               </Text>
             </Box>
@@ -222,13 +226,13 @@ export default function ProfileScreen() {
                   px={16}
                   py={16}
                   borderRadius={999}
-                  style={{ backgroundColor: activeMenu === item.id ? '#FFE6CC' : 'transparent' }}
+                  style={{ backgroundColor: activeMenu === item.id ? (theme === 'light' ? '#FFE6CC' : colors.card) : 'transparent' }}
                 >
                   {item.icon}
                   <Text
                     fontSize={16}
                     fontWeight={activeMenu === item.id ? '500' : '400'}
-                    style={{ color: activeMenu === item.id ? '#e57373' : '#555' }}
+                    style={{ color: activeMenu === item.id ? colors.accent : colors.text }}
                   >
                     {item.label}
                   </Text>

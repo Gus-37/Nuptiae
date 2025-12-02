@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { registerUser } from "../services/authService";
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function RegisterPush() {
+  const { colors, fontScale, theme } = useUISettings();
   const navigation = useNavigation();
   const route = useRoute();
   const { step1Data, step2Data, hasCode } = route.params || {};
@@ -62,66 +64,66 @@ export default function RegisterPush() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{hasCode ? "Únete a la cuenta" : "Completa tu registro"}</Text>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <Text style={[styles.title, { color: colors.text, fontSize: 24 * fontScale }]}>{hasCode ? "Únete a la cuenta" : "Completa tu registro"}</Text>
       {hasCode && (
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.muted, fontSize: 14 * fontScale }]}>
           Te unirás a la cuenta con código: {step1Data?.accountCode}
         </Text>
       )}
 
-      <Text style={styles.label}>Correo Electrónico</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Correo Electrónico</Text>
       <TextInput
         placeholder="Ingresa tu correo"
         value={email}
         onChangeText={setEmail}
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
         keyboardType="email-address"
         autoCapitalize="none"
         editable={!loading}
       />
 
-      <Text style={styles.label}>Contraseña</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Contraseña</Text>
       <TextInput
         placeholder="Ingresa tu contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
         editable={!loading}
       />
 
-      <Text style={styles.label}>Confirmar Contraseña</Text>
+      <Text style={[styles.label, { color: colors.text, fontSize: 14 * fontScale }]}>Confirmar Contraseña</Text>
       <TextInput
         placeholder="Confirma tu contraseña"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
         editable={!loading}
       />
       
-      <View style={styles.notificationCard}>
+      <View style={[styles.notificationCard, { backgroundColor: colors.accent }]}>
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>🔔</Text>
+          <Text style={[styles.icon, { fontSize: 48 * fontScale }]}>🔔</Text>
         </View>
-        <Text style={styles.notificationTitle}>
+        <Text style={[styles.notificationTitle, { fontSize: 16 * fontScale }]}>
           ¡Concédenos el permiso de tu código en configuración de cuentas para enviar notificaciones!
         </Text>
       </View>
 
       <TouchableOpacity
-        style={[styles.primaryButton, loading && styles.disabledButton]}
+        style={[styles.primaryButton, { backgroundColor: colors.accent }, loading && { opacity: 0.7 }]}
         onPress={handleRegister}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.primaryButtonText}>Registrarte</Text>
+          <Text style={[styles.primaryButtonText, { fontSize: 16 * fontScale }]}>Registrarte</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -131,40 +133,33 @@ export default function RegisterPush() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingHorizontal: 24,
     paddingTop: 40,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: "#666",
     marginBottom: 24,
     textAlign: "center",
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: "#333",
     marginBottom: 20,
   },
   notificationCard: {
-    backgroundColor: "#ff6b6b",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
@@ -174,26 +169,17 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 16,
   },
-  icon: {
-    fontSize: 48,
-  },
   notificationTitle: {
     color: "#fff",
-    fontSize: 16,
     textAlign: "center",
     lineHeight: 22,
   },
   primaryButton: {
-    backgroundColor: "#ff6b6b",
     borderRadius: 12,
     paddingVertical: 16,
   },
-  disabledButton: {
-    opacity: 0.7,
-  },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },

@@ -259,7 +259,6 @@ export default function SharedAccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
@@ -267,19 +266,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     fontSize: 16,
-    color: '#ff6b6b',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
   },
   loadingContainer: {
     flex: 1,
@@ -291,15 +286,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -309,12 +298,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
     marginLeft: 12,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -323,24 +310,20 @@ const styles = StyleSheet.create({
   },
   codeLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   codeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#ff6b6b',
     borderStyle: 'dashed',
   },
   codeText: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#ff6b6b',
     letterSpacing: 4,
   },
   copyButton: {
@@ -348,7 +331,6 @@ const styles = StyleSheet.create({
   },
   codeHint: {
     fontSize: 12,
-    color: '#999',
     marginTop: 8,
     lineHeight: 16,
   },
@@ -366,13 +348,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   memberAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#ff6b6b',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -388,23 +368,19 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 2,
   },
   memberEmail: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 4,
   },
   memberRole: {
     fontSize: 12,
-    color: '#999',
   },
   leaveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#dc3545',
     borderRadius: 12,
     padding: 14,
     gap: 8,
@@ -421,31 +397,26 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 20,
-    color: '#333',
     marginBottom: 16,
     textAlign: 'center',
     letterSpacing: 4,
     fontWeight: '600',
   },
   joinButton: {
-    backgroundColor: '#ff6b6b',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { ref, onValue } from 'firebase/database';
 import { providersDatabase as database } from '../config/firebaseConfig';
+import { useUISettings } from '../context/UISettingsContext';
 
 export default function PlayasScreen({ navigation }) {
+  const { theme, fontScale, colors } = useUISettings();
   const [proveedores, setProveedores] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,26 +34,26 @@ export default function PlayasScreen({ navigation }) {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
-        <View style={styles.header}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} translucent={false} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+        <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <TouchableOpacity 
             onPress={() => navigation.goBack()}
             style={styles.headerButton}
           >
-            <ArrowLeft size={24} color="#333" />
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Playas</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Playas</Text>
           <View style={styles.headerButton} />
         </View>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.helper}>Cargando playas...</Text>
+            <Text style={[styles.helper, { color: colors.muted, fontSize: 14 * fontScale }]}>Cargando playas...</Text>
           </View>
         ) : proveedores.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.helper}>No hay playas registradas. Verifica Firebase en products/playas.</Text>
+            <Text style={[styles.helper, { color: colors.muted, fontSize: 14 * fontScale }]}>No hay playas registradas. Verifica Firebase en products/playas.</Text>
           </View>
         ) : (
           <FlatList
@@ -62,12 +64,12 @@ export default function PlayasScreen({ navigation }) {
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.card}
+                style={[styles.card, { backgroundColor: colors.card }]}
                 onPress={() => navigation.navigate('DetalleProveedor', { proveedor: item })}
               >
                 {item.imagen && <Image source={{ uri: item.imagen }} style={styles.image} />}
                 <View style={styles.cardContent}>
-                  <Text style={styles.name}>{item.nombre}</Text>
+                  <Text style={[styles.name, { color: colors.text, fontSize: 14 * fontScale }]}>{item.nombre}</Text>
                 </View>
               </TouchableOpacity>
             )}

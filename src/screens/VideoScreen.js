@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useUISettings } from "../context/UISettingsContext";
 import {
     View,
     Text,
@@ -14,6 +15,7 @@ import { ArrowLeft, MapPin } from "lucide-react-native";
 import { listenToProducts } from "../services/productsService";
 
 export default function VideoScreen({ navigation }) {
+    const { colors, fontScale, theme } = useUISettings();
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -27,50 +29,47 @@ export default function VideoScreen({ navigation }) {
     }, []);
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <TouchableOpacity 
-                        onPress={() => navigation.goBack()}
-                        style={styles.headerButton}
-                    >
-                        <ArrowLeft size={24} color="#333" />
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top', 'left', 'right']}>
+            <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+            <View style={[styles.container, { backgroundColor: colors.bg }]}>
+                <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+                        <ArrowLeft size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Video</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Video</Text>
                     <View style={styles.headerButton} />
                 </View>
 
                 <ScrollView style={styles.scrollContent}>
-                    <TouchableOpacity style={styles.locationContainer}>
-                        <MapPin size={16} color="#ff6b6b" />
-                        <Text style={styles.locationText}>Aguascalientes</Text>
+                    <TouchableOpacity style={[styles.locationContainer, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                        <MapPin size={16} color={colors.accent} />
+                        <Text style={[styles.locationText, { color: colors.text, fontSize: 15 * fontScale }]}>Aguascalientes</Text>
                     </TouchableOpacity>
 
                     {loading ? (
                         <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="#ff6b6b" />
-                            <Text style={styles.loadingText}>Cargando productos...</Text>
+                            <ActivityIndicator size="large" color={colors.accent} />
+                            <Text style={[styles.loadingText, { color: colors.muted, fontSize: 14 * fontScale }]}>Cargando productos...</Text>
                         </View>
                     ) : videos.length === 0 ? (
                         <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No hay productos disponibles</Text>
+                            <Text style={[styles.emptyText, { color: colors.muted, fontSize: 14 * fontScale }]}>No hay productos disponibles</Text>
                         </View>
                     ) : (
                         <View style={styles.grid}>
                             {videos.map((item) => (
                                 <TouchableOpacity 
                                     key={item.id} 
-                                    style={styles.card}
+                                    style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
                                     onPress={() => navigation.navigate('ProductDetail', {
                                         product: item,
                                         category: 'Video'
                                     })}
                                 >
-                                    <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
+                                    <Image source={{ uri: item.image }} style={[styles.image, { backgroundColor: theme === 'light' ? '#f0f0f0' : colors.bg }]} alt={item.name} />
                                     <View style={styles.cardContent}>
-                                        <Text style={styles.itemName}>{item.name}</Text>
-                                        <Text style={styles.itemPrice}>{item.price}</Text>
+                                        <Text style={[styles.itemName, { color: colors.text, fontSize: 14 * fontScale }]} numberOfLines={1}>{item.name}</Text>
+                                        <Text style={[styles.itemPrice, { color: colors.muted, fontSize: 13 * fontScale }]} numberOfLines={1}>{item.price}</Text>
                                     </View>
                                 </TouchableOpacity>
                             ))}
@@ -141,7 +140,6 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "48%",
-        backgroundColor: "#fff",
         borderRadius: 12,
         marginBottom: 16,
         overflow: "hidden",
@@ -150,6 +148,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
+        borderWidth: 1,
     },
     image: {
         width: "100%",
@@ -163,13 +162,11 @@ const styles = StyleSheet.create({
     itemName: {
         fontSize: 14,
         fontWeight: "600",
-        color: "#333",
         marginBottom: 4,
     },
     itemPrice: {
         fontSize: 14,
         fontWeight: "500",
-        color: "#666",
     },
     loadingContainer: {
         flex: 1,
@@ -180,7 +177,6 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 12,
         fontSize: 14,
-        color: "#666",
     },
     emptyContainer: {
         flex: 1,
@@ -190,6 +186,5 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 14,
-        color: "#999",
     },
 });

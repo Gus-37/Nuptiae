@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useUISettings } from '../context/UISettingsContext';
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Users, Gift, Building, HelpCircle, Home } from "lucide-react-native";
@@ -17,18 +18,20 @@ import IdiomaScreen from "../screens/IdiomaScreen";
 import RolesScreen from "../screens/RolesScreen";
 import TareasStack from "../navigation/TareasStack";
 import PreparativosScreen from "../screens/PreparativosScreen";
+import AyudaScreen from "../screens/AyudaScreen";
 
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
+  const { colors, fontScale } = useUISettings();
   return (
-    <DrawerContentScrollView {...props} style={styles.drawerContainer}>
+    <DrawerContentScrollView {...props} style={[styles.drawerContainer, { backgroundColor: colors.bg }] }>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <View style={styles.menuIconContainer}>
-          <Text style={styles.menuIcon}>☰</Text>
+          <Text style={[styles.menuIcon, { color: colors.muted }]}>☰</Text>
         </View>
-        <Text style={styles.logoText}>Nuptiae</Text>
+        <Text style={[styles.logoText, { color: colors.accent, fontSize: 20 * fontScale }]}>Nuptiae</Text>
       </View>
 
       {/* Menu Items */}
@@ -36,7 +39,7 @@ function CustomDrawerContent(props) {
         label="Inicio"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <Home size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <Home size={22} color={focused ? colors.accent : colors.muted} />
           </View>
         )}
         onPress={() => props.navigation.navigate("Home")}
@@ -49,7 +52,7 @@ function CustomDrawerContent(props) {
         label="Invitados"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <Users size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <Users size={22} color={focused ? colors.accent : colors.muted} />
           </View>
         )}
         onPress={() => props.navigation.navigate("Invitados")}
@@ -62,7 +65,7 @@ function CustomDrawerContent(props) {
         label="Promos"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <Gift size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <Gift size={22} color={focused ? colors.accent : colors.muted} />
           </View>
         )}
         onPress={() => props.navigation.navigate("Promociones")}
@@ -75,7 +78,7 @@ function CustomDrawerContent(props) {
         label="Proveedores"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <Building size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <Building size={22} color={focused ? colors.accent : colors.muted} />
           </View>
         )}
         onPress={() => props.navigation.navigate("Providers")}
@@ -85,30 +88,17 @@ function CustomDrawerContent(props) {
         inactiveTintColor="#333"
       />
       <DrawerItem
-        label="Comunidad"
-        icon={({ focused }) => (
-          <View style={styles.iconContainer}>
-            <Building size={22} color={focused ? "#ff6b6b" : "#666"} />
-          </View>
-        )}
-        onPress={() => props.navigation.navigate("Forms")}
-        labelStyle={styles.drawerLabel}
-        style={styles.drawerItem}
-        activeTintColor="#ff6b6b"
-        inactiveTintColor="#333"
-      />
-      <DrawerItem
         label="Ayuda"
         icon={({ focused }) => (
           <View style={styles.iconContainer}>
-            <HelpCircle size={22} color={focused ? "#ff6b6b" : "#666"} />
+            <HelpCircle size={22} color={focused ? colors.accent : colors.muted} />
           </View>
         )}
-        onPress={() => { }}
+        onPress={() => props.navigation.navigate("Ayuda")}
         labelStyle={styles.drawerLabel}
         style={styles.drawerItem}
-        activeTintColor="#ff6b6b"
-        inactiveTintColor="#333"
+        activeTintColor={colors.accent}
+        inactiveTintColor={colors.text}
       />
     </DrawerContentScrollView>
   );
@@ -118,24 +108,12 @@ export default function DrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      initialRouteName="Home"
-      screenOptions={{
-        headerShown: false,
-        drawerActiveTintColor: "#ff6b6b",
-        drawerInactiveTintColor: "#333",
-        drawerStyle: {
-          backgroundColor: "#fff",
-          width: 280,
-        },
-        swipeEnabled: true,
-        swipeEdgeWidth: 50,
-      }}
+      screenOptions={{ headerShown: false }}
     >
-      {/* Main Screens - Accessible from Drawer */}
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ 
+        options={{
           title: "Inicio",
           drawerLabel: "Inicio"
         }}
@@ -143,7 +121,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ 
+        options={{
           title: "Perfil",
           drawerLabel: "Perfil"
         }}
@@ -151,7 +129,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Invitados"
         component={InvitadosScreen}
-        options={{ 
+        options={{
           title: "Invitados",
           drawerLabel: "Invitados"
         }}
@@ -159,7 +137,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Promociones"
         component={PromocionesScreen}
-        options={{ 
+        options={{
           title: "Promociones",
           drawerLabel: "Promos"
         }}
@@ -167,25 +145,33 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Providers"
         component={ProvidersScreen}
-        options={{ 
+        options={{
           title: "Proveedores",
           drawerLabel: "Proveedores"
         }}
       />
       <Drawer.Screen
-        name="Forms"
-        component={FormsScreen}
-        options={{ 
-          title: "Comunidad",
-          drawerLabel: "Comunidad"
+        name="Ayuda"
+        component={AyudaScreen}
+        options={{
+          title: "Ayuda",
+          drawerLabel: "Ayuda"
         }}
       />
-      
+
       {/* Secondary Screens - Not in drawer menu but accessible */}
+      <Drawer.Screen
+        name="Forms"
+        component={FormsScreen}
+        options={{
+          title: "Comunidad",
+          drawerItemStyle: { display: 'none' }
+        }}
+      />
       <Drawer.Screen
         name="Agenda"
         component={AgendaScreen}
-        options={{ 
+        options={{
           title: "Agenda",
           drawerLabel: "Agenda",
           headerShown: true
@@ -194,7 +180,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Costos"
         component={CostosScreen}
-        options={{ 
+        options={{
           title: "Costos",
           drawerItemStyle: { display: 'none' }
         }}
@@ -202,7 +188,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Cuentas"
         component={CuentasScreen}
-        options={{ 
+        options={{
           title: "Cuentas",
           drawerItemStyle: { display: 'none' }
         }}
@@ -227,7 +213,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Roles"
         component={RolesScreen}
-        options={{ 
+        options={{
           title: "Roles",
           drawerItemStyle: { display: 'none' }
         }}
@@ -235,7 +221,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Pantalla"
         component={PantallaScreen}
-        options={{ 
+        options={{
           title: "Pantalla",
           drawerItemStyle: { display: 'none' }
         }}
@@ -243,7 +229,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen
         name="Idioma"
         component={IdiomaScreen}
-        options={{ 
+        options={{
           title: "Idioma",
           drawerItemStyle: { display: 'none' }
         }}

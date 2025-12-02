@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Image,
-  Modal,
   TextInput,
+  Modal,
   Animated,
   Alert,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MoreVertical, ShoppingCart, DollarSign, List, ArrowLeft, Calendar, Users, Home, Edit, Bold, Plus } from "lucide-react-native";
@@ -18,8 +18,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../config/firebaseConfig';
 import { getUserData } from '../services/authService';
 import * as budgetService from '../services/budgetService';
+import { useUISettings } from '../context/UISettingsContext';
 
 export default function CostosScreen({ navigation, route }) {
+  const { colors, fontScale, theme } = useUISettings ? useUISettings() : { colors: { bg: '#fff', card: '#fff', border: '#e0e0e0', accent: '#ff6b6b', text: '#111', muted: '#666' }, fontScale: 1, theme: 'light' };
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [selectedTab, setSelectedTab] = useState("carrito");
   const [menuVisible, setMenuVisible] = useState(false);
   const [budgetEditMode, setBudgetEditMode] = useState(false);
@@ -419,17 +423,18 @@ export default function CostosScreen({ navigation, route }) {
   
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+      <StatusBar barStyle={theme === "light" ? "dark-content" : "light-content"} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#333" />
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Costos y presupuesto</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Costos y presupuesto</Text>
           <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.headerButton}>
-            <MoreVertical size={24} color="#333" />
+            <MoreVertical size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -445,7 +450,7 @@ export default function CostosScreen({ navigation, route }) {
             activeOpacity={1}
             onPress={() => setMenuVisible(false)}
           >
-            <View style={styles.menuContainer}>
+            <View style={[styles.menuContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
@@ -453,8 +458,8 @@ export default function CostosScreen({ navigation, route }) {
                   setMenuVisible(false);
                 }}
               >
-                <List size={20} color="#333" />
-                <Text style={styles.menuItemText}>Compras</Text>
+                <List size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Compras</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}
@@ -463,8 +468,8 @@ export default function CostosScreen({ navigation, route }) {
                   setMenuVisible(false);
                 }}
               >
-                <ShoppingCart size={20} color="#333" />
-                <Text style={styles.menuItemText}>Carrito</Text>
+                <ShoppingCart size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Carrito</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}
@@ -473,8 +478,8 @@ export default function CostosScreen({ navigation, route }) {
                   setMenuVisible(false);
                 }}
               >
-                <DollarSign size={20} color="#333" />
-                <Text style={styles.menuItemText}>Presupuesto</Text>
+                <DollarSign size={20} color={colors.text} />
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Presupuesto</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -483,7 +488,7 @@ export default function CostosScreen({ navigation, route }) {
         {/* Tabs */}
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontSize: 20 * fontScale }]}>
               {selectedTab === "compras" ? "Compras" : selectedTab === "carrito" ? "Carrito" : "Presupuesto Total y Lista de gastos"}
             </Text>
 
@@ -494,12 +499,13 @@ export default function CostosScreen({ navigation, route }) {
                 <View style={styles.budgetHeaderRange}>
                   {budgetEditMode ? (
                     <View style={styles.budgetEditContainer}>
-                      <Text style={styles.budgetEditLabel}>$</Text>
+                      <Text style={[styles.budgetEditLabel, { color: colors.text }]}>$</Text>
                       <TextInput
-                        style={styles.budgetEditInput}
+                        style={[styles.budgetEditInput, { color: colors.text, borderColor: colors.border }]}
                         value={budgetMax}
                         onChangeText={setBudgetMax}
                         placeholder="20,000"
+                        placeholderTextColor={colors.muted}
                         keyboardType="numeric"
                         onBlur={async () => {
                           setBudgetEditMode(false);
@@ -517,7 +523,7 @@ export default function CostosScreen({ navigation, route }) {
                     </View>
                   ) : (
                     <View style={styles.budgetHeaderContainer}>
-                      <Text style={styles.budgetHeaderText}>{budgetMax ? `${budgetMin || ''} $${budgetMax}` : 'Sin definir'}</Text>
+                      <Text style={[styles.budgetHeaderText, { color: colors.text, fontSize: 24 * fontScale }]}>{budgetMax ? `${budgetMin || ''} $${budgetMax}` : 'Sin definir'}</Text>
                       <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                         <Animated.View style={[styles.editGlow, { opacity: editGlowOpacity, transform: [{ scale: editGlowScale }] }]} />
                         <Animated.View style={{ transform: [{ scale: editPulse }] }}>
@@ -539,9 +545,9 @@ export default function CostosScreen({ navigation, route }) {
                       <Text style={styles.removeButtonText}>×</Text>
                     </TouchableOpacity>
                     <View style={styles.budgetItemContent}>
-                      <Text style={styles.budgetItemName}>{item.name}</Text>
-                      <Text style={styles.budgetItemProvider}>{item.provider}</Text>
-                      <Text style={styles.budgetItemPrice}>{item.price}</Text>
+                      <Text style={[styles.budgetItemName, { color: colors.text, fontSize: 16 * fontScale }]}>{item.name}</Text>
+                      <Text style={[styles.budgetItemProvider, { color: colors.muted, fontSize: 14 * fontScale }]}>{item.provider}</Text>
+                      <Text style={[styles.budgetItemPrice, { color: colors.text, fontSize: 16 * fontScale }]}>{item.price}</Text>
                     </View>
                   </View>
                 ))}
@@ -554,34 +560,34 @@ export default function CostosScreen({ navigation, route }) {
                     style={[styles.comprasTab, comprasTab === 'entregados' && styles.comprasTabActive]}
                     onPress={() => setComprasTab('entregados')}
                   >
-                    <Text style={[styles.comprasTabText, comprasTab === 'entregados' && styles.comprasTabTextActive]}>Entregados</Text>
+                    <Text style={[styles.comprasTabText, comprasTab === 'entregados' && styles.comprasTabTextActive, { fontSize: 14 * fontScale }, comprasTab === 'entregados' ? { color: colors.accent } : { color: colors.muted }]}>Entregados</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.comprasTab, comprasTab === 'enProceso' && styles.comprasTabActive]}
                     onPress={() => setComprasTab('enProceso')}
                   >
-                    <Text style={[styles.comprasTabText, comprasTab === 'enProceso' && styles.comprasTabTextActive]}>En proceso</Text>
+                    <Text style={[styles.comprasTabText, comprasTab === 'enProceso' && styles.comprasTabTextActive, { fontSize: 14 * fontScale }, comprasTab === 'enProceso' ? { color: colors.accent } : { color: colors.muted }]}>En proceso</Text>
                   </TouchableOpacity>
                 </View>
                 {comprasTab === 'entregados' ? (
                   // Mostrar entregados agrupados por mes
                   Object.entries(entregadosByMonth).map(([month, monthItems]) => (
                     <View key={month}>
-                      <Text style={styles.monthHeader}>{month}</Text>
+                      <Text style={[styles.monthHeader, { color: colors.text, fontSize: 16 * fontScale }]}>{month}</Text>
                       {monthItems.map((item) => (
                         <View key={item.id} style={styles.purchaseCard}>
                           <View style={styles.purchaseLeft}>
                             <View style={styles.purchaseImage} />
                           </View>
                           <View style={styles.purchaseBody}>
-                            <Text style={styles.purchaseTitle}>{item.name}</Text>
-                            <Text style={styles.purchaseSubtitle}>{item.detail}</Text>
-                            <Text style={[styles.purchaseStatus, { color: '#4caf50' }]}>{item.status}</Text>
+                            <Text style={[styles.purchaseTitle, { color: colors.text, fontSize: 16 * fontScale }]}>{item.name}</Text>
+                            <Text style={[styles.purchaseSubtitle, { color: colors.muted, fontSize: 14 * fontScale }]}>{item.detail}</Text>
+                            <Text style={[styles.purchaseStatus, { color: '#4caf50', fontSize: 14 * fontScale }]}>{item.status}</Text>
                             { (item.purchasedAt || item.updatedAt) && (
-                              <Text style={styles.purchaseDate}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
+                              <Text style={[styles.purchaseDate, { color: colors.muted, fontSize: 12 * fontScale }]}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
                             ) }
                           </View>
-                          <Text style={styles.purchasePrice}>{item.price}</Text>
+                          <Text style={[styles.purchasePrice, { color: colors.text, fontSize: 16 * fontScale }]}>{item.price}</Text>
                         </View>
                       ))}
                     </View>
@@ -594,14 +600,14 @@ export default function CostosScreen({ navigation, route }) {
                         <View style={styles.purchaseImage} />
                       </View>
                       <View style={styles.purchaseBody}>
-                        <Text style={styles.purchaseTitle}>{item.name}</Text>
-                        <Text style={styles.purchaseSubtitle}>{item.detail}</Text>
-                        <Text style={[styles.purchaseStatus, { color: '#ff9800' }]}>{item.status}</Text>
+                        <Text style={[styles.purchaseTitle, { color: colors.text, fontSize: 16 * fontScale }]}>{item.name}</Text>
+                        <Text style={[styles.purchaseSubtitle, { color: colors.muted, fontSize: 14 * fontScale }]}>{item.detail}</Text>
+                        <Text style={[styles.purchaseStatus, { color: '#ff9800', fontSize: 14 * fontScale }]}>{item.status}</Text>
                         { (item.purchasedAt || item.updatedAt) && (
-                          <Text style={styles.purchaseDate}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
+                          <Text style={[styles.purchaseDate, { color: colors.muted, fontSize: 12 * fontScale }]}>Comprado el: {item.purchasedAt ? formatDate(item.purchasedAt) : formatDate(item.updatedAt)}</Text>
                         ) }
                       </View>
-                      <Text style={styles.purchasePrice}>{item.price}</Text>
+                      <Text style={[styles.purchasePrice, { color: colors.text, fontSize: 16 * fontScale }]}>{item.price}</Text>
                     </View>
                   ))
                 )}
@@ -625,14 +631,14 @@ export default function CostosScreen({ navigation, route }) {
                     )}
                     <View style={styles.itemImage} />
                     <View style={styles.itemContent}>
-                      <Text style={styles.itemName}>{item.name}</Text>
-                      <Text style={styles.itemDetail}>{item.detail}</Text>
+                      <Text style={[styles.itemName, { color: colors.text, fontSize: 16 * fontScale }]}>{item.name}</Text>
+                      <Text style={[styles.itemDetail, { color: colors.muted, fontSize: 14 * fontScale }]}>{item.detail}</Text>
                       {selectedTab === "carrito" && (
-                        <Text style={styles.itemPriceInline}>{item.price}</Text>
+                        <Text style={[styles.itemPriceInline, { color: colors.text, fontSize: 16 * fontScale }]}>{item.price}</Text>
                       )}
                     </View>
                     {selectedTab !== "carrito" && (
-                      <Text style={styles.itemPrice}>{item.price}</Text>
+                      <Text style={[styles.itemPrice, { color: colors.text, fontSize: 16 * fontScale }]}>{item.price}</Text>
                     )}
                   </View>
                 ));
@@ -644,7 +650,7 @@ export default function CostosScreen({ navigation, route }) {
         </ScrollView>
 
         {/* Fixed total / presupuesto box - stays visible while scrolling */}
-        <View style={styles.fixedTotalContainer} pointerEvents="box-none">
+        <View style={[styles.fixedTotalContainer, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]} pointerEvents="box-none">
           {
             (() => {
               const isBudgetUnset = !budgetMax || isNaN(maxBudget);
@@ -652,8 +658,8 @@ export default function CostosScreen({ navigation, route }) {
                 const cartBudgetStatus = getCartBudgetStatus();
                 return (
                   <>
-                    <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={[styles.totalAmount, { color: cartBudgetStatus.color }]}>{formatPrice(cartTotal)}</Text>
+                    <Text style={[styles.totalLabel, { color: colors.muted, fontSize: 16 * fontScale }]}>Total</Text>
+                    <Text style={[styles.totalAmount, { color: cartBudgetStatus.color, fontSize: 32 * fontScale }]}>{formatPrice(cartTotal)}</Text>
                     {cartBudgetStatus.status === 'unset' ? (
                       <TouchableOpacity onPress={() => setSelectedTab('presupuesto')}>
                         <Text style={[styles.budgetStatusMessage, { color: '#ff6b6b', marginTop: 8 }, styles.budgetMessageCentered]}>{cartBudgetStatus.message}</Text>
@@ -794,8 +800,8 @@ export default function CostosScreen({ navigation, route }) {
 
               return (
                 <>
-                  <Text style={styles.totalLabel}>Presupuesto disponible</Text>
-                  <Text style={styles.totalAmount}>{formatPrice(budgetRemainingWithoutCart)}</Text>
+                  <Text style={[styles.totalLabel, { color: colors.muted, fontSize: 16 * fontScale }]}>Presupuesto disponible</Text>
+                  <Text style={[styles.totalAmount, { color: colors.text, fontSize: 32 * fontScale }]}>{formatPrice(budgetRemainingWithoutCart)}</Text>
                 </>
               );
             })()
@@ -814,23 +820,26 @@ export default function CostosScreen({ navigation, route }) {
             activeOpacity={1}
             onPress={() => setAddBudgetItemVisible(false)}
           >
-            <View style={styles.addBudgetModalContent}>
-              <Text style={styles.addBudgetModalTitle}>Agregar Presupuesto</Text>
+            <View style={[styles.addBudgetModalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.addBudgetModalTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Agregar Presupuesto</Text>
               <TextInput
-                style={styles.addBudgetInput}
+                style={[styles.addBudgetInput, { color: colors.text, fontSize: 14 * fontScale, backgroundColor: colors.bg, borderColor: colors.border }]}
                 placeholder="Nombre del item"
+                placeholderTextColor={colors.muted}
                 value={newBudgetName}
                 onChangeText={setNewBudgetName}
               />
               <TextInput
-                style={styles.addBudgetInput}
+                style={[styles.addBudgetInput, { color: colors.text, fontSize: 14 * fontScale, backgroundColor: colors.bg, borderColor: colors.border }]}
                 placeholder="Proveedor"
+                placeholderTextColor={colors.muted}
                 value={newBudgetProvider}
                 onChangeText={setNewBudgetProvider}
               />
               <TextInput
-                style={styles.addBudgetInput}
+                style={[styles.addBudgetInput, { color: colors.text, fontSize: 14 * fontScale, backgroundColor: colors.bg, borderColor: colors.border }]}
                 placeholder="Precio (ej: $5,000)"
+                placeholderTextColor={colors.muted}
                 value={newBudgetPrice}
                 onChangeText={setNewBudgetPrice}
                 keyboardType="numeric"
@@ -840,13 +849,13 @@ export default function CostosScreen({ navigation, route }) {
                   style={[styles.addBudgetButton, { backgroundColor: "#eee" }]}
                   onPress={() => setAddBudgetItemVisible(false)}
                 >
-                  <Text style={{ color: "#333", fontSize: 14, fontWeight: "600" }}>Cancelar</Text>
+                  <Text style={{ color: colors.text, fontSize: 14 * fontScale, fontWeight: "600" }}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.addBudgetButton, { backgroundColor: "#ff6b6b" }]}
                   onPress={addBudgetItem}
                 >
-                  <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Agregar</Text>
+                  <Text style={{ color: "#fff", fontSize: 14 * fontScale, fontWeight: "600" }}>Agregar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -864,9 +873,9 @@ export default function CostosScreen({ navigation, route }) {
         )}
 
         {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <Home size={24} color="#666" />
+            <Home size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
@@ -875,10 +884,10 @@ export default function CostosScreen({ navigation, route }) {
             <ShoppingCart size={24} color="#ff6b6b" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-            <Calendar size={24} color="#666" />
+            <Calendar size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Cuentas")}>
-            <Users size={24} color="#666" />
+            <Users size={24} color={colors.muted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -886,6 +895,7 @@ export default function CostosScreen({ navigation, route }) {
   );
 }
 
+/* 🎨 Estilos */
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -1041,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -1054,9 +1064,10 @@ const styles = StyleSheet.create({
     right: 0,
   },
   navItem: {
-    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   navIcon: {
     fontSize: 24,
@@ -1179,12 +1190,10 @@ const styles = StyleSheet.create({
   },
   comprasTabs: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     padding: 6,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
   },
   comprasTab: {
     flex: 1,
@@ -1194,30 +1203,18 @@ const styles = StyleSheet.create({
   },
   comprasTabActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#ff6b6b',
   },
   comprasTabText: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '600',
   },
-  comprasTabTextActive: {
-    color: '#ff6b6b',
-  },
+  comprasTabTextActive: {},
   purchaseCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
   },
   purchaseLeft: {
     marginRight: 12,
@@ -1226,7 +1223,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#e9e9e9',
   },
   purchaseBody: {
     flex: 1,
@@ -1234,22 +1230,18 @@ const styles = StyleSheet.create({
   purchaseTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111',
   },
   purchaseSubtitle: {
     fontSize: 13,
-    color: '#666',
     marginTop: 4,
   },
   purchaseStatus: {
     fontSize: 12,
-    color: '#999',
     marginTop: 6,
   },
   purchasePrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ff6b6b',
     marginLeft: 8,
   },
   purchaseDate: {
@@ -1260,7 +1252,6 @@ const styles = StyleSheet.create({
   monthHeader: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
     marginTop: 16,
     marginBottom: 12,
     paddingLeft: 4,
@@ -1270,13 +1261,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#ff6b6b',
     zIndex: 0,
-    shadowColor: '#ff6b6b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
   },
   budgetMessageCentered: {
     textAlign: 'center',
@@ -1288,18 +1273,12 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#ff6b6b',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
     elevation: 8,
     zIndex: 10,
   },
   addBudgetModalContent: {
-    backgroundColor: '#fff',
     marginTop: 'auto',
     marginBottom: 'auto',
     marginHorizontal: 16,
@@ -1311,7 +1290,6 @@ const styles = StyleSheet.create({
   addBudgetModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 20,
   },
   addBudgetInput: {

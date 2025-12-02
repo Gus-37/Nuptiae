@@ -13,8 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { databaseAgendas } from '../config/firebaseAgendas';
 import { ref, onValue, update, remove } from 'firebase/database';
+import { useUISettings } from '../context/UISettingsContext';
 
 export default function TareasScreen({ navigation, hideHeader = false }) {
+  const { colors, fontScale, theme } = useUISettings();
   // estado inicial basado en dimensiones actuales
   const window = Dimensions.get('window');
   const [isLandscape, setIsLandscape] = useState(window.width > window.height);
@@ -206,12 +208,12 @@ export default function TareasScreen({ navigation, hideHeader = false }) {
   );
 
   return (
-    <View style={[styles.container, isLandscape && styles.containerLandscape]}>
+    <View style={[styles.container, { backgroundColor: colors.bg }, isLandscape && styles.containerLandscape]}>
       {/* Encabezado (solo visible en portrait ahora y si no está anidado) */}
       {!isLandscape && !hideHeader && (
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Tareas</Text>
-          <Text style={styles.taskCount}>
+        <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }] }>
+          <Text style={[styles.headerText, { color: colors.text }]}>Tareas</Text>
+          <Text style={[styles.taskCount, { color: colors.muted }]}>
             {tasks.filter(t => !t.completed).length} pendientes
           </Text>
         </View>
@@ -234,8 +236,8 @@ export default function TareasScreen({ navigation, hideHeader = false }) {
       />
 
       {/* Botón flotante */}
-      <TouchableOpacity style={[styles.fab, isLandscape && styles.fabLandscape]} onPress={navigateToAddTarea}>
-        <Ionicons name="add" size={32} color="#fff" />
+      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent }, isLandscape && styles.fabLandscape]} onPress={navigateToAddTarea}>
+        <Ionicons name="add" size={32} color={'#fff'} />
       </TouchableOpacity>
     </View>
   );
@@ -244,7 +246,6 @@ export default function TareasScreen({ navigation, hideHeader = false }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   containerLandscape: {
     paddingTop: 10,
@@ -252,19 +253,15 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   headerText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 5,
   },
   taskCount: {
     fontSize: 14,
-    color: '#999',
   },
   listContent: {
     paddingHorizontal: 15,
@@ -295,22 +292,17 @@ const styles = StyleSheet.create({
   taskContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-  },
-  priorityDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 12,
-  },
-  taskTextContainer: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fab: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 5,
+    },
   },
   taskTitleCompleted: {
     textDecorationLine: 'line-through',

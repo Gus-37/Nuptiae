@@ -3,8 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { useNavigation } from "@react-navigation/native";
 import { Mail, Apple } from "lucide-react-native";
 import { loginUser } from "../services/authService";
+import { useUISettings } from "../context/UISettingsContext";
 
 export default function LoginScreen() {
+  const { colors, fontScale, theme } = useUISettings();
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,16 +40,16 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido a Nuptiae</Text>
-      <Text style={styles.subtitle}>Inicia sesión para comenzar</Text>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <Text style={[styles.title, { color: colors.text, fontSize: 28 * fontScale }]}>Bienvenido a Nuptiae</Text>
+      <Text style={[styles.subtitle, { color: colors.muted, fontSize: 16 * fontScale }]}>Inicia sesión para comenzar</Text>
 
       <TextInput
         placeholder="Correo Electrónico"
         value={email}
         onChangeText={setEmail}
-        style={styles.input}
-        placeholderTextColor="#999"
+        style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+        placeholderTextColor={colors.muted}
         keyboardType="email-address"
         autoCapitalize="none"
         editable={!loading}
@@ -59,48 +61,48 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          style={[styles.input, { marginBottom: 0 }]}
-          placeholderTextColor="#999"
+          style={[styles.input, { marginBottom: 0, backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
+          placeholderTextColor={colors.muted}
           editable={!loading}
         />
       </View>
 
       <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
-        <Text style={styles.forgotPassword}>¿Olvidaste la contraseña?</Text>
+        <Text style={[styles.forgotPassword, { color: colors.accent, fontSize: 14 * fontScale }]}>¿Olvidaste la contraseña?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.primaryButton, loading && styles.disabledButton]}
+        style={[styles.primaryButton, { backgroundColor: colors.accent }, loading && { opacity: 0.6 }]}
         onPress={handleLogin}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.primaryButtonText}>Inicia Sesión</Text>
+          <Text style={[styles.primaryButtonText, { fontSize: 16 * fontScale }]}>Inicia Sesión</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>O</Text>
-        <View style={styles.dividerLine} />
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        <Text style={[styles.dividerText, { color: colors.muted, fontSize: 14 * fontScale }]}>O</Text>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
       </View>
 
-      <TouchableOpacity style={styles.googleButton} disabled>
-        <Mail size={20} color="#999" style={styles.socialIcon} />
-        <Text style={[styles.socialButtonText, { color: '#999' }]}>Continúa con Google (Próximamente)</Text>
+      <TouchableOpacity style={[styles.googleButton, { backgroundColor: colors.card, borderColor: colors.border }]} disabled>
+        <Mail size={20} color={colors.muted} style={styles.socialIcon} />
+        <Text style={[styles.socialButtonText, { color: colors.muted, fontSize: 16 * fontScale }]}>Continúa con Google (Próximamente)</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.appleButton} disabled>
-        <Apple size={20} color="#999" style={styles.socialIcon} />
-        <Text style={[styles.appleButtonText, { color: '#999' }]}>Continúa con Apple (Próximamente)</Text>
+      <TouchableOpacity style={[styles.appleButton, { backgroundColor: colors.card, borderColor: colors.border }]} disabled>
+        <Apple size={20} color={colors.muted} style={styles.socialIcon} />
+        <Text style={[styles.appleButtonText, { color: colors.muted, fontSize: 16 * fontScale }]}>Continúa con Apple (Próximamente)</Text>
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
         <TouchableOpacity onPress={() => navigation.navigate("RegisterStep1")}>
-          <Text style={styles.registerText}>
-            ¿No tienes cuenta? <Text style={styles.registerLink}>Regístrate</Text>
+          <Text style={[styles.registerText, { color: colors.text, fontSize: 14 * fontScale }]}>
+            ¿No tienes cuenta? <Text style={[styles.registerLink, { color: colors.accent }]}>Regístrate</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -111,51 +113,43 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingHorizontal: 24,
     justifyContent: "center",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 16,
     textAlign: "center",
     marginBottom: 32,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: "#fafafa",
   },
   passwordContainer: {
     marginBottom: 8,
   },
   forgotPassword: {
-    color: "#666",
     fontSize: 14,
     textAlign: "center",
     marginBottom: 24,
   },
   primaryButton: {
-    backgroundColor: "#ff6b6b",
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 20,
   },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -167,17 +161,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#e0e0e0",
   },
   dividerText: {
     marginHorizontal: 16,
-    color: "#999",
     fontSize: 14,
   },
   googleButton: {
-    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 12,
@@ -186,9 +176,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   appleButton: {
-    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 24,
@@ -200,28 +188,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   socialButtonText: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#333",
   },
   appleButtonText: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#333",
   },
   registerContainer: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: 8,
     width: '100%',
-  },
-  registerText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-  },
-  registerLink: {
-    color: "#ff6b6b",
-    fontWeight: "600",
   },
 });
