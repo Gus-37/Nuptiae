@@ -9,56 +9,60 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Check } from "lucide-react-native";
-import { CommonActions } from '@react-navigation/native';
+import { useUISettings } from "../context/UISettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 
-export default function IdiomaScreen({ navigation, route }) {
-  const [selectedLanguage, setSelectedLanguage] = useState("Español");
-  const params = route.params || {};
+export default function IdiomaScreen({ navigation }) {
+  const { colors, fontScale, theme } = useUISettings();
+  const { language, changeLanguage, t } = useLanguage();
 
   const languages = [
-    { id: 1, name: "Español" },
-    { id: 2, name: "Inglés" },
+    { id: 1, name: "Español", code: "es" },
+    { id: 2, name: "English", code: "en" },
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            navigation.getParent()?.navigate('ProfileDetail', params);
-          }}>
-            <ArrowLeft size={24} color="#333" />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Idioma</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>
+            {t('language')}
+          </Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView style={styles.content}>
           <View style={styles.section}>
-            {languages.map((language) => (
-              <TouchableOpacity
-                key={language.id}
-                style={[
-                  styles.languageOption,
-                  selectedLanguage === language.name && styles.languageOptionSelected,
-                ]}
-                onPress={() => setSelectedLanguage(language.name)}
-              >
-                <Text
+            {languages.map((lang) => {
+              const selected = language === lang.code;
+              return (
+                <TouchableOpacity
+                  key={lang.id}
                   style={[
-                    styles.languageText,
-                    selectedLanguage === language.name && styles.languageTextSelected,
+                    styles.languageOption,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                    selected && { backgroundColor: colors.accent, borderColor: colors.accent },
                   ]}
+                  onPress={() => changeLanguage(lang.code)}
                 >
-                  {language.name}
-                </Text>
-                {selectedLanguage === language.name && (
-                  <Check size={20} color="#fff" />
-                )}
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.languageText,
+                      { color: colors.text, fontSize: 16 * fontScale },
+                      selected && styles.languageTextSelected,
+                    ]}
+                  >
+                    {lang.name}
+                  </Text>
+                  {selected && <Check size={20} color="#fff" />}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       </View>
@@ -69,11 +73,9 @@ export default function IdiomaScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -82,12 +84,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: "600",
-    color: "#333",
   },
   content: {
     flex: 1,
@@ -101,16 +100,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: "#f5f5f5",
     borderRadius: 12,
     marginBottom: 12,
-  },
-  languageOptionSelected: {
-    backgroundColor: "#ff6b6b",
+    borderWidth: 1,
   },
   languageText: {
-    fontSize: 16,
-    color: "#333",
     fontWeight: "500",
   },
   languageTextSelected: {

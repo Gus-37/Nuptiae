@@ -1,62 +1,52 @@
 import React, { useState } from 'react';
-import { StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { VStack, HStack, Text, Pressable, Switch } from '@gluestack-ui/themed';
-import { ChevronLeft, Key } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Bell } from 'lucide-react-native';
+import { useUISettings } from '../context/UISettingsContext';
 
-export default function NotificationsScreen() {
-  const navigation = useNavigation();
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-  });
-
-  const toggleNotification = (type) => {
-    setNotifications((prev) => ({ ...prev, [type]: !prev[type] }));
-  };
-
-  const notificationOptions = [
-    { id: 'email', label: 'Correo' },
-    { id: 'push', label: 'Push' },
-    { id: 'sms', label: 'SMS' },
-  ];
+export default function NotificationsScreen({ navigation }) {
+  const { colors, fontScale, theme } = useUISettings();
+  const [enabled, setEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(false);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <VStack flex={1}>
-          {/* Header */}
-          <HStack px={16} py={16} alignItems="center">
-            <Pressable onPress={() => navigation.goBack()}>
-              <ChevronLeft size={24} color="#999" />
-            </Pressable>
-            <Text fontSize={20} fontWeight="600" ml={16}>Notificaciones</Text>
-          </HStack>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top','left','right']}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <ArrowLeft size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Notificaciones</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-          {/* Notification Options */}
-          <VStack flex={1} px={16} space={8}>
-            {notificationOptions.map((option) => (
-              <HStack
-                key={option.id}
-                alignItems="center"
-                justifyContent="space-between"
-                px={16}
-                py={16}
-                borderRadius={12}
-                style={{ backgroundColor: '#f5f5f5' }}
-              >
-                <Text fontSize={16}>{option.label}</Text>
-                <Switch
-                  size="sm"
-                  isChecked={notifications[option.id]}
-                  onValueChange={() => toggleNotification(option.id)}
-                />
-              </HStack>
-            ))}
-          </VStack>
-        </VStack>
-      </SafeAreaView>
+      <View style={styles.content}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <View style={styles.left}>
+              <Bell size={20} color={colors.muted} />
+              <Text style={[styles.label, { color: colors.text, fontSize: 16 * fontScale }]}>Push</Text>
+            </View>
+            <Switch value={enabled} onValueChange={setEnabled} />
+          </View>
+
+          <View style={[styles.row, { marginTop: 12 }]}>
+            <Text style={[styles.label, { color: colors.text, fontSize: 16 * fontScale }]}>Correo</Text>
+            <Switch value={emailEnabled} onValueChange={setEmailEnabled} />
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
+  headerTitle: { fontWeight: '600' },
+  content: { padding: 16 },
+  card: { padding: 16, borderRadius: 12, borderWidth: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  left: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  label: { fontWeight: '600' },
+});

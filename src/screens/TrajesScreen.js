@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useUISettings } from "../context/UISettingsContext";
 import {
     View,
     Text,
@@ -7,70 +8,73 @@ import {
     ScrollView,
     Image,
     StatusBar,
+    ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, MapPin } from "lucide-react-native";
+import { listenToProducts } from "../services/productsService";
 
 export default function TrajesScreen({ navigation }) {
-    const trajes = [
-        {
-            id: 1,
-            name: "Traje #1",
-            price: "$3,000",
-            image: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 2,
-            name: "Traje #2",
-            price: "$4,000",
-            image: "https://images.pexels.com/photos/2788488/pexels-photo-2788488.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 3,
-            name: "Traje #3",
-            price: "$3,500",
-            image: "https://images.pexels.com/photos/1043473/pexels-photo-1043473.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-            id: 4,
-            name: "Traje #4",
-            price: "$4,500",
-            image: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-    ];
+    const { colors, fontScale, theme } = useUISettings();
+    const [trajes, setTrajes] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = listenToProducts('trajes', (products) => {
+            setTrajes(products);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <TouchableOpacity 
-                        onPress={() => navigation.goBack()}
-                        style={styles.headerButton}
-                    >
-                        <ArrowLeft size={24} color="#333" />
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top', 'left', 'right']}>
+            <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+            <View style={[styles.container, { backgroundColor: colors.bg }]}>
+                <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+                        <ArrowLeft size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Trajes</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>Trajes</Text>
                     <View style={styles.headerButton} />
                 </View>
 
                 <ScrollView style={styles.scrollContent}>
-                    <TouchableOpacity style={styles.locationContainer}>
-                        <MapPin size={16} color="#ff6b6b" />
-                        <Text style={styles.locationText}>Aguascalientes</Text>
+                    <TouchableOpacity style={[styles.locationContainer, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+                        <MapPin size={16} color={colors.accent} />
+                        <Text style={[styles.locationText, { color: colors.text, fontSize: 15 * fontScale }]}>Aguascalientes</Text>
                     </TouchableOpacity>
 
-                    <View style={styles.grid}>
-                        {trajes.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image }} style={styles.image} alt={item.name} />
-                                <View style={styles.cardContent}>
-                                    <Text style={styles.itemName}>{item.name}</Text>
-                                    <Text style={styles.itemPrice}>{item.price}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    {loading ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color={colors.accent} />
+                            <Text style={[styles.loadingText, { color: colors.muted, fontSize: 14 * fontScale }]}>Cargando productos...</Text>
+                        </View>
+                    ) : trajes.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Text style={[styles.emptyText, { color: colors.muted, fontSize: 14 * fontScale }]}>No hay productos disponibles</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.grid}>
+                            {trajes.map((item) => (
+                                <TouchableOpacity 
+                                    key={item.id} 
+                                    style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+                                    onPress={() => navigation.navigate('ProductDetail', {
+                                        product: item,
+                                        category: 'Trajes'
+                                    })}
+                                >
+                                    <Image source={{ uri: item.image }} style={[styles.image, { backgroundColor: theme === 'light' ? '#f0f0f0' : colors.bg }]} alt={item.name} />
+                                    <View style={styles.cardContent}>
+                                        <Text style={[styles.itemName, { color: colors.text, fontSize: 14 * fontScale }]} numberOfLines={1}>{item.name}</Text>
+                                        <Text style={[styles.itemPrice, { color: colors.muted, fontSize: 13 * fontScale }]} numberOfLines={1}>{item.price}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -136,7 +140,6 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "48%",
-        backgroundColor: "#fff",
         borderRadius: 12,
         marginBottom: 16,
         overflow: "hidden",
@@ -145,6 +148,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
+        borderWidth: 1,
     },
     image: {
         width: "100%",
@@ -158,12 +162,29 @@ const styles = StyleSheet.create({
     itemName: {
         fontSize: 14,
         fontWeight: "600",
-        color: "#333",
         marginBottom: 4,
     },
     itemPrice: {
         fontSize: 14,
         fontWeight: "500",
-        color: "#666",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 14,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 14,
     },
 });

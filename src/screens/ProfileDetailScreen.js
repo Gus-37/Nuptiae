@@ -71,9 +71,9 @@ export default function ProfileDetailScreen() {
                 <Camera size={22} color="#fff" style={styles.cameraIcon} />
               </Avatar>
             </Pressable>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.role}>{role}</Text>
-            <Text style={styles.username}>Usuario: {username}</Text>
+            <Text style={styles.name} numberOfLines={2}>{name}</Text>
+            <Text style={styles.role} numberOfLines={1}>{role}</Text>
+            <Text style={styles.username} numberOfLines={1}>Usuario: {username}</Text>
           </View>
         </ImageBackground>
 
@@ -167,51 +167,36 @@ export default function ProfileDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f2f2' },
+  container: { flex: 1 },
   headerBackground: { paddingBottom: 24 },
   avatarSection: { alignItems: 'center', marginTop: 16 },
   cameraIcon: { position: 'absolute', bottom: 0, right: 0 },
-  name: { fontSize: 24, fontWeight: '700', color: '#fff', marginTop: 8 },
-  role: { fontSize: 16, color: '#fff', marginTop: 2 },
-  username: { fontSize: 16, color: '#fff', marginTop: 2 },
+  name: { fontSize: 24, fontWeight: '700', color: '#fff', marginTop: 8, textAlign: 'center' },
+  role: { fontSize: 16, color: '#fff', marginTop: 4, textAlign: 'center', letterSpacing: 0.5 },
+  username: { fontSize: 16, color: '#fff', marginTop: 2, textAlign: 'center' },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
   },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12, color: '#444' },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
   textInput: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 12,
     paddingLeft: 14,
     paddingRight: 40,
-    backgroundColor: '#fefefe',
     marginBottom: 12,
-    color: '#333',
   },
   inputContainer: { position: 'relative', marginBottom: 12 },
   eyeIcon: { position: 'absolute', right: 12, top: 15 },
   saveButton: {
-    backgroundColor: '#FF7700',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 16,
     marginHorizontal: 16,
-    shadowColor: '#FF7700',
-    shadowOpacity: 0.4,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 8,
-    elevation: 4,
   },
   saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

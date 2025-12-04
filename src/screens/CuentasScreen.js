@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,96 +7,213 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  Share,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Menu, Users, ArrowLeft, ChevronRight, User, Lock, Activity, Globe, Monitor, Home, ShoppingCart, Calendar } from "lucide-react-native";
+import { Menu, Users, ArrowLeft, ChevronRight, User, Bell, Activity, Globe, Monitor, Home, ShoppingCart, Calendar, Copy, LogOut } from "lucide-react-native";
+import { getUserData, logoutUser } from '../services/authService';
+import { getSharedAccountInfo } from '../services/accountService';
+import { auth } from '../config/firebaseConfig';
+import { useUISettings } from '../context/UISettingsContext';
+import { useLanguage } from '../context/LanguageContext';
+import { CommonActions } from '@react-navigation/native';
 
 export default function CuentasScreen({ navigation }) {
+  const { colors, fontScale, theme } = useUISettings();
+  const { t } = useLanguage();
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountCode, setAccountCode] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const accounts = [
-    { id: 1, name: "Jessica", role: "Novia", avatar: "👰" },
-    { id: 2, name: "Michael", role: "Novio", avatar: "🤵" },
-  ];
+  useEffect(() => {
+    loadAccountInfo();
+  }, []);
+
+  const loadAccountInfo = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.log('No hay usuario autenticado');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Usuario actual:', currentUser.uid);
+      const userData = await getUserData(currentUser.uid);
+      console.log('Datos de usuario:', userData);
+
+      if (userData.success && userData.data.sharedAccountCode) {
+        console.log('Código de cuenta:', userData.data.sharedAccountCode);
+        const accountInfo = await getSharedAccountInfo(userData.data.sharedAccountCode);
+        console.log('Info de cuenta:', accountInfo);
+
+        if (accountInfo.success) {
+          setAccountCode(accountInfo.account.code);
+          
+          const currentUserAccount = accountInfo.account.members.find(
+            member => member.uid === currentUser.uid
+          );
+          
+          if (currentUserAccount) {
+            // El rol ya viene correcto desde accountInfo (userData.role)
+            const userRole = currentUserAccount.role || 'Miembro';
+            
+            // Determinar avatar basado en género o rol
+            let avatar = "👤"; // Default
+            if (currentUserAccount.gender === 'Femenino' || userRole === 'Novia') {
+              avatar = "👰";
+            } else if (currentUserAccount.gender === 'Masculino' || userRole === 'Novio') {
+              avatar = "🤵";
+            }
+            
+            const formattedAccount = {
+              id: currentUserAccount.uid,
+              name: currentUserAccount.name || currentUser.displayName || currentUserAccount.email?.split('@')[0] || 'Usuario',
+              role: userRole,
+              avatar: avatar,
+              email: currentUserAccount.email,
+              gender: currentUserAccount.gender,
+            };
+            
+            console.log('Cuenta del usuario actual:', formattedAccount);
+            setAccounts([formattedAccount]);
+          }
+        } else {
+          console.error('Error al obtener cuenta:', accountInfo.error);
+          Alert.alert('Error', accountInfo.error);
+        }
+      } else {
+        console.log('Usuario sin código de cuenta compartida');
+      }
+    } catch (error) {
+      console.error('Error al cargar información:', error);
+      Alert.alert('Error', 'No se pudo cargar la información de la cuenta: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (accountCode) {
+      try {
+        await Share.share({
+          message: `Código de cuenta Nuptiae: ${accountCode}\n\nUsa este código para unirte a nuestra cuenta compartida.`
+        });
+      } catch (error) {
+        Alert.alert('Código', accountCode);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logoutUser();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo cerrar sesión');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const menuOptions = [
-    { id: 1, icon: User, label: "Editar Perfil", description: "Nombre, correo, foto de perfil", color: "#ff6b6b" },
-    { id: 2, icon: Lock, label: "Cambiar Contraseña", description: "Actualiza tu contraseña de acceso", color: "#333" },
-    { id: 3, icon: Activity, label: "Actividad Reciente", description: "Historial de acciones en la cuenta", color: "#333" },
-    { id: 4, icon: Globe, label: "Idioma y Región", description: "Español, México", color: "#333" },
-    { id: 5, icon: Monitor, label: "Configuración de Pantalla", description: "Tema, notificaciones, privacidad", color: "#333" },
+    { id: 1, icon: User, label: t('editProfile'), description: t('editProfileDesc'), color: colors.accent },
+    { id: 2, icon: Bell, label: t('notifications'), description: t('notificationsDesc'), color: colors.text },
+    { id: 3, icon: Activity, label: t('recentActivity'), description: t('recentActivityDesc'), color: colors.text },
+    { id: 4, icon: Globe, label: t('languageRegion'), description: t('languageRegionDesc'), color: colors.text },
+    { id: 5, icon: Monitor, label: t('displaySettings'), description: t('displaySettingsDesc'), color: colors.text },
+    { id: 6, icon: LogOut, label: t('logout'), description: t('logoutDesc'), color: colors.accent },
   ];
+
+  const handleMenuPress = (id) => {
+    if (id === 1) navigation.navigate('ProfileEdit');
+    else if (id === 2) navigation.navigate('Notifications');
+    else if (id === 3) navigation.navigate('Activity');
+    else if (id === 4) navigation.navigate('Language');
+    else if (id === 5) navigation.navigate('Pantalla');
+    else if (id === 6) handleLogout();
+  };
 
   if (selectedAccount) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-        <View style={styles.container}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top", "left", "right"]}>
+        <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+        <View style={[styles.container, { backgroundColor: colors.bg }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={() => setSelectedAccount(null)}>
-              <ArrowLeft size={24} color="#333" />
+              <ArrowLeft size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Cuenta</Text>
+            <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>{t('account')}</Text>
             <View style={{ width: 24 }} />
           </View>
 
           <ScrollView style={styles.content}>
             <View style={styles.profileSection}>
-              <View style={styles.avatarContainer}>
+              <View style={[styles.avatarContainer, { backgroundColor: theme === 'light' ? '#f0f0f0' : '#2A2A2A' }]}>
                 <Text style={styles.avatarLarge}>{selectedAccount.avatar}</Text>
               </View>
-              <Text style={styles.profileName}>{selectedAccount.name}</Text>
-              <Text style={styles.profileRole}>{selectedAccount.role}</Text>
+              <Text style={styles.profileName} numberOfLines={2}>{selectedAccount.name}</Text>
+              <Text style={styles.profileRole} numberOfLines={1}>{selectedAccount.role}</Text>
             </View>
 
             <View style={styles.menuSection}>
               {menuOptions.map((option) => {
-                const IconComponent = option.icon;
+                const IconComponent = option.icon && typeof option.icon === 'function' ? option.icon : User;
                 return (
                   <TouchableOpacity 
                     key={option.id} 
-                    style={styles.menuItem}
-                    onPress={() => {
-                      if (option.id === 4) {
-                        navigation.navigate("Idioma");
-                      } else if (option.id === 5) {
-                        navigation.navigate("Pantalla");
-                      }
-                    }}
+                    style={[styles.menuItem, { borderBottomColor: colors.border }]}
+                    onPress={() => handleMenuPress(option.id)} // << usar el manejador común
                   >
                     <View style={styles.menuItemLeft}>
-                      <View style={[styles.iconCircle, option.id === 1 && styles.iconCircleHighlight]}>
+                      <View style={[styles.iconCircle, { backgroundColor: theme === 'light' ? '#f5f5f5' : '#2A2A2A' }]}>
                         <IconComponent size={20} color={option.color} />
                       </View>
                       <View style={styles.menuItemTextContainer}>
-                        <Text style={styles.menuItemText}>{option.label}</Text>
-                        <Text style={styles.menuItemDescription}>{option.description}</Text>
+                        <Text style={[styles.menuItemText, { color: colors.text, fontSize: 16 * fontScale }]}>{option.label}</Text>
+                        <Text style={[styles.menuItemDescription, { color: colors.muted, fontSize: 12 * fontScale }]}>{option.description}</Text>
                       </View>
                     </View>
-                    <ChevronRight size={20} color="#999" />
+                    <ChevronRight size={20} color={colors.muted} />
                   </TouchableOpacity>
                 );
               })}
             </View>
           </ScrollView>
 
-          {/* Bottom Navigation */}
-          <View style={styles.bottomNav}>
+          <View style={[styles.bottomNav, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
             <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-              <Home size={24} color="#666" />
+              <Home size={24} color={colors.muted} />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-            >
-              <ShoppingCart size={24} color="#666" />
+            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Costos", { tab: "compras" })}>
+              <ShoppingCart size={24} color={colors.muted} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-              <Calendar size={24} color="#666" />
+              <Calendar size={24} color={colors.muted} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.navItem}>
-              <Users size={24} color="#ff6b6b" />
+              <Users size={24} color={colors.accent} />
             </TouchableOpacity>
           </View>
         </View>
@@ -105,70 +222,101 @@ export default function CuentasScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={["top","left","right"]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate('Home');
-            }
-          }}>
-            <ArrowLeft size={24} color="#333" />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Configuración de cuentas</Text>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: 18 * fontScale }]}>{t('accountConfiguration')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView style={styles.content}>
-          <View style={styles.section}>
-            <Text style={styles.accountNumber}>456</Text>
-            <Text style={styles.accountLabel}>Código de cuenta dúo</Text>
+        {/* Content */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
+          </View>
+        ) : (
+          <ScrollView style={styles.content}>
+            {/* Código de cuenta */}
+            {accountCode && (
+              <View style={styles.section}>
+                <View style={styles.codeSection}>
+                  <View style={styles.codeContainer}>
+                    <Text style={[styles.accountNumber, { color: colors.text }]}>{accountCode}</Text>
+                    <TouchableOpacity onPress={handleCopyCode} style={styles.copyButton}>
+                      <Copy size={20} color={colors.accent} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={[styles.accountLabel, { color: colors.muted }]}>{t('accountCode')}</Text>
+                  <Text style={[styles.accountHint, { color: colors.muted }]}>{t('shareCode')}</Text>
+                </View>
+              </View>
+            )}
 
+            {/* Lista de cuentas */}
             <View style={styles.accountsContainer}>
               {accounts.map((account) => (
-                <TouchableOpacity 
-                  key={account.id} 
-                  style={styles.accountCard}
+                <TouchableOpacity
+                  key={account.id}
+                  style={[styles.accountCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                   onPress={() => setSelectedAccount(account)}
                 >
-                  <View style={styles.avatar}>
+                  <View style={[styles.avatar, { backgroundColor: theme === 'light' ? '#f0f0f0' : '#2A2A2A' }]}>
                     <Text style={styles.avatarEmoji}>{account.avatar}</Text>
                   </View>
                   <View style={styles.accountInfo}>
-                    <Text style={styles.accountName}>{account.name}</Text>
-                    <Text style={styles.accountRole}>{account.role}</Text>
+                    <Text style={styles.accountName} numberOfLines={1}>{account.name}</Text>
+                    <Text style={styles.accountRole} numberOfLines={1}>{account.role}</Text>
                   </View>
-                  <ChevronRight size={20} color="#999" />
+                  <ChevronRight size={20} color={colors.muted} />
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity style={styles.plannerButton}>
-              <Text style={styles.plannerButtonText}>Planner de boda</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            {/* Menú */}
+            <View style={styles.menuSection}>
+              {menuOptions.map((option) => {
+                const IconComponent = option.icon && typeof option.icon === 'function' ? option.icon : User;
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[styles.menuItem, { borderBottomColor: colors.border }]}
+                    onPress={() => handleMenuPress(option.id)}
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <View style={[styles.iconCircle, { backgroundColor: theme === 'light' ? '#f5f5f5' : '#2A2A2A' }]}>
+                        <IconComponent size={20} color={option.color} />
+                      </View>
+                      <View style={styles.menuItemTextContainer}>
+                        <Text style={[styles.menuItemText, { color: colors.text, fontSize: 16 * fontScale }]}>{option.label}</Text>
+                        <Text style={[styles.menuItemDescription, { color: colors.muted, fontSize: 12 * fontScale }]}>{option.description}</Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={20} color={colors.muted} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
 
         {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <Home size={24} color="#666" />
+            <Home size={24} color={colors.muted} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => navigation.navigate("Costos", { tab: "compras" })}
-          >
-            <ShoppingCart size={24} color="#666" />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Costos", { tab: "compras" })}>
+            <ShoppingCart size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Agenda")}>
-            <Calendar size={24} color="#666" />
+            <Calendar size={24} color={colors.muted} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Users size={24} color="#ff6b6b" />
+            <Users size={24} color={colors.accent} />
           </TouchableOpacity>
         </View>
       </View>
@@ -202,6 +350,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   section: {
     padding: 20,
     alignItems: "center",
@@ -212,16 +365,33 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 24,
   },
+  codeSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  codeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   accountNumber: {
     fontSize: 48,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 8,
+  },
+  copyButton: {
+    padding: 8,
   },
   accountLabel: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 40,
+    marginTop: 8,
+  },
+  accountHint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
   },
   accountsContainer: {
     width: "100%",
