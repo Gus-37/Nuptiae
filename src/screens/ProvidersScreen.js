@@ -306,11 +306,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderRadius: 16,
         overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
     },
     verticalImage: {
         width: "100%",
@@ -328,11 +323,6 @@ const styles = StyleSheet.create({
         marginLeft: 16,
         borderRadius: 16,
         overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
     },
     horizontalImage: {
         width: "100%",
